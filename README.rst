@@ -2,7 +2,7 @@
 dice
 ====
 
-A python library and command line tool for parsing and 'rolling' (i.e. calculating) dice notation expressions.
+A command line tool and library for parsing and evaluating dice expressions.
 
 Licence
 =======
