@@ -4,7 +4,10 @@ from __future__ import absolute_import, unicode_literals, division
 from operator import mul
 from functools import reduce
 
-from pyparsing import CaselessLiteral, Or, replaceWith, Optional, ZeroOrMore, Word, nums, Forward, OneOrMore
+from pyparsing import (
+    CaselessLiteral, Forward, OneOrMore, Optional, Or, Word, ZeroOrMore,
+    nums, replaceWith
+)
 
 def literal(item):
     name, value = item

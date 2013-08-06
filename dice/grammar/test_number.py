@@ -75,7 +75,7 @@ def test_major():
     parse_all("one {0}", values_major)
 
 def test_x_major():
-    parse_two("{0} {1}", lambda u,m: u*m, values_units, values_major)
+    parse_two("{0} {1}", lambda u, m: u * m, values_units, values_major)
 
 def test_full():
     assert parse("one thousand, one hundred and twenty three") == 1123

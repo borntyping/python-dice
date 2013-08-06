@@ -2,7 +2,7 @@
 dice
 ====
 
-A command line tool and library for parsing and evaluating dice expressions.
+A library for parsing and evaluating dice notation.
 
 Licence
 =======

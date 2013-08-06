@@ -1,4 +1,4 @@
-"""A command line tool and library for parsing and evaluating dice expressions."""
+"""A library for parsing and evaluating dice notation."""
 
 from __future__ import absolute_import, print_function, unicode_literals
 

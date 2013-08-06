@@ -5,17 +5,17 @@ from setuptools import setup, find_packages
 
 setup(
     name             = 'dice',
-    version          = '0.1.1',
+    version          = '0.1.2',
 
     author           = "Sam Clements",
     author_email     = "sam@borntyping.co.uk",
     url              = "https://github.com/borntyping/dice",
     
-    description      = "A command line tool and library for parsing and evaluating dice expressions",
+    description      = "A library for parsing and evaluating dice notation",
     long_description = open('README.rst').read(),
 
     packages         = find_packages(),
-    install_requires = ['pyparsing==2'],
+    install_requires = ['pyparsing==2.0.1'],
 
     entry_points     = {
         'console_scripts': ['roll = dice:main']
