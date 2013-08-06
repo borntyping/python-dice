@@ -1,7 +1,10 @@
+"""Text number grammar"""
+
 from __future__ import absolute_import, unicode_literals, division
 from operator import mul
+from functools import reduce
 
-from pyparsing import CaselessLiteral, Or, replaceWith, Optional, ZeroOrMore, Word, nums
+from pyparsing import CaselessLiteral, Or, replaceWith, Optional, ZeroOrMore, Word, nums, Forward, OneOrMore
 
 def literal(item):
     name, value = item
@@ -25,6 +28,15 @@ units = literals({
     'eight': 8,
     'nine': 9,
     'ten': 10,
+    'eleven': 11,
+    'twelve': 12,
+    'thirteen': 13,
+    'fourteen': 14,
+    'fifteen': 15,
+    'sixteen': 16,
+    'seventeen': 17,
+    'eighteen': 18,
+    'nineteen': 19,
 })
 
 tens = literals({

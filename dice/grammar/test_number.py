@@ -14,6 +14,15 @@ values_units = {
     'eight': 8,
     'nine': 9,
     'ten': 10,
+    'eleven': 11,
+    'twelve': 12,
+    'thirteen': 13,
+    'fourteen': 14,
+    'fifteen': 15,
+    'sixteen': 16,
+    'seventeen': 17,
+    'eighteen': 18,
+    'nineteen': 19,
 }
 
 values_tens = {
@@ -35,7 +44,6 @@ values_major = {
 }
 
 def parse(expression):
-    print(number.parseString(expression))
     return number.parseString(expression)[0]
 
 def parse_all(format_string, units, value_func=lambda v: v):
@@ -71,3 +79,12 @@ def test_x_major():
 
 def test_full():
     assert parse("one thousand, one hundred and twenty three") == 1123
+
+def test_lots():
+    assert parse("one hundred twenty") == 120
+    assert parse("one hundred and twenty") == 120
+    assert parse("one hundred and three") == 103
+    assert parse("one hundred twenty three") == 123
+    assert parse("one hundred and twenty three") == 123
+    assert parse("fifteen hundred and sixty five") == 1565
+    assert parse("zero") == 0
