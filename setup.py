@@ -9,7 +9,7 @@ setup(
 
     author           = "Sam Clements",
     author_email     = "sam@borntyping.co.uk",
-    url              = "https://github.com/borntyping/dice",
+    url              = "https://github.com/borntyping/python-dice",
     
     description      = "A library for parsing and evaluating dice notation",
     long_description = open('README.rst').read(),
