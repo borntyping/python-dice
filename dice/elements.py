@@ -20,12 +20,17 @@ class Roll(list):
 class Dice(object):
     """A group of dice, all with the same number of sides"""
     
-    def __init__(self, tokens):
-        if isinstance(tokens, basestring):
-            self.num, self.sides = tokens.split('d')
-        elif isinstance(tokens, ParseResults):
-            self.num = tokens[0]
-            self.sides = tokens[1]
+    def __init__(self, obj):
+        if isinstance(obj, basestring):
+            self.assign(*obj.split('d'))
+        elif isinstance(obj, ParseResults):
+            self.assign(*obj[0:2])
+        else:
+            raise TypeError("Cannot create Dice object from {0}".format(
+                obj.__class__.__name__))
+
+    def assign(self, num, sides):
+        self.num, self.sides = int(num), int(sides)
 
     def __repr__(self):
         return "Dice('{0}d{1}')".format(self.num, self.sides)
