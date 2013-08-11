@@ -1,52 +1,40 @@
-"""Dice notation grammar"""
+"""
+Dice notation grammar
+
+PyParsing is patched to make it easier to work with, by removing features
+that get in the way of development and debugging. See the dice.utilities
+module for more information.
+"""
 
 from __future__ import absolute_import, unicode_literals, division
+from __future__ import print_function
 
-from pyparsing import (CaselessLiteral, Forward, Group, Literal, OneOrMore,
-    Optional, ParserElement, StringStart, StringEnd, Suppress,
-    Word, ZeroOrMore, delimitedList, nums)
+from pyparsing import (CaselessLiteral, Forward, Group, Keyword, Literal,
+    OneOrMore, Optional, ParserElement, StringStart, StringEnd, Suppress,
+    Word, ZeroOrMore, delimitedList, nums, opAssoc, operatorPrecedence)
 
-from dice.elements import Dice, Integer
+from dice.elements import Integer, Dice
+from dice.utilities import patch_pyparsing
 
 # Set PyParsing options
+patch_pyparsing()
 ParserElement.enablePackrat()
-ParserElement.verbose_stacktrace = True
-
-# Some definitions need to be available before they have been defined
-expr, subexpr = Forward(), Forward()
+# ParserElement.verbose_stacktrace = True
 
 # An integer value
-integer = Word(nums)
-integer.setParseAction(Integer.parse)
-integer.setName("integer")
-
-# A single set of dice, each with the number of sides and rolled as a group
-dice = Optional(integer, default=1) + Suppress(CaselessLiteral('d')) + integer
-dice.setParseAction(Dice.parse)
-dice.setName("dice")
-
-# Sub-expressions are surrounded by parenthesis
-lparen, rparen = Suppress(Literal('(')), Suppress(Literal(')'))
-
-# Sub-expressions allow atoms to be another expression surrounded by brackets
-subexpr <<= lparen + expr + rparen
-subexpr.setName("sub-expression")
-
-# The smallest possible component of an expression
-atom = dice | integer | subexpr
-atom.setName("atom")
+integer = Word(nums).setParseAction(Integer.parse).setName("integer")
 
 # An expression in dice notation
-expr <<= atom
-expr.setName("partial expression")
+expression = operatorPrecedence(integer, [
+    (Literal('d').suppress(), 2, opAssoc.LEFT, Dice.parse),
+    (Literal('d'), 1, opAssoc.RIGHT, Dice.parse_default),
+
+    (Literal('+'), 2, opAssoc.LEFT),
+    (Literal('-'), 2, opAssoc.LEFT),
+    (Literal('*'), 2, opAssoc.LEFT),
+    (Literal('/'), 2, opAssoc.LEFT),
+]).setName("expression")
 
 # Multiple expressions can be separated with delimiters
-delimiter = Suppress(Literal(';'))
-delimiter.setName("delimiter")
-
-expressions = expr + ZeroOrMore(delimiter + expr)
-expressions.setName("expressions")
-
-expression = StringStart() + Group(expressions) + StringEnd()
-expression.setName("expression")
-expression.validate()
+notation = StringStart() + delimitedList(expression, ';') + StringEnd()
+notation.setName("notation")

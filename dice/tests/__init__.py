@@ -9,6 +9,4 @@ def single(iterable):
 
 def parse(grammar, string):
     """Parses a string with a grammar, returning and printing the result"""
-    result = single(grammar.parseString(string))
-    print(result)
-    return result
+    return single(grammar.parseString(string, parseAll=True))
