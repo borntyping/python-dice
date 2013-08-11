@@ -2,10 +2,7 @@
 
 from __future__ import absolute_import, unicode_literals, division
 
-from collections import Iterable
 from random import randint
-
-from pyparsing import ParseResults
 
 from dice.utilities import classname
 

@@ -9,9 +9,8 @@ module for more information.
 from __future__ import absolute_import, unicode_literals, division
 from __future__ import print_function
 
-from pyparsing import (CaselessLiteral, Forward, Group, Keyword, Literal,
-    OneOrMore, Optional, ParserElement, StringStart, StringEnd, Suppress,
-    Word, ZeroOrMore, delimitedList, nums, opAssoc)
+from pyparsing import (Forward, Literal, OneOrMore, StringStart, StringEnd,
+    Suppress, Word, delimitedList, nums, opAssoc)
 
 from dice.elements import Integer, Dice
 from dice.utilities import patch_pyparsing

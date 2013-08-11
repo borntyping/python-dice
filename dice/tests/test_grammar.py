@@ -2,10 +2,9 @@ from __future__ import absolute_import, unicode_literals, division
 
 from py.test import mark
 
-from dice import ParseException
 from dice.elements import Integer, Dice
 from dice.grammar import integer, expression, notation
-from dice.tests import parse, raises
+from dice.tests import parse
 
 class TestInteger(object):
     def test_parse(self):

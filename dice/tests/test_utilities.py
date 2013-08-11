@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 from pyparsing import Literal
 
-from dice.tests import raises
+from py.test import raises
 
 def test_enable_pyparsing_packrat_parsing():
     """Test that packrat parsing was enabled"""
