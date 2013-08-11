@@ -4,6 +4,29 @@ dice
 
 A library for parsing and evaluating dice notation.
 
+Todo
+====
+
+* Unary and binary operators
+* Console and module API functions
+
+Notes
+=====
+
+Some rough notes on how I want the API to look:
+
+::
+
+    >>> d = Dice('2d6')
+    Dice("Two six-sided dice")
+    >>> d.roll()
+    Roll(5, 5, sides=6)
+    >>> b = Bag('two six-sided dice', 'six-sided die', '4d2', (3,3), Dice('d1'))
+    >>> repr(b)
+    Bag((3,6), (4,2), (3,3))
+    >>> str(b)
+    "3d6, 4d2, 1d1"
+
 Licence
 =======
 
