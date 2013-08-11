@@ -6,7 +6,7 @@ from pyparsing import (CaselessLiteral, Forward, Group, Literal, OneOrMore,
     Optional, ParserElement, StringStart, StringEnd, Suppress,
     Word, ZeroOrMore, delimitedList, nums)
 
-from dice.elements import Dice
+from dice.elements import Dice, Integer
 
 # Set PyParsing options
 ParserElement.enablePackrat()
@@ -17,12 +17,12 @@ expr, subexpr = Forward(), Forward()
 
 # An integer value
 integer = Word(nums)
-integer.setParseAction(lambda s,l,t: int(t[0]))
+integer.setParseAction(Integer.parse)
 integer.setName("integer")
 
 # A single set of dice, each with the number of sides and rolled as a group
 dice = Optional(integer, default=1) + Suppress(CaselessLiteral('d')) + integer
-dice.setParseAction(lambda s,l,t: Dice(t))
+dice.setParseAction(Dice.parse)
 dice.setName("dice")
 
 # Sub-expressions are surrounded by parenthesis

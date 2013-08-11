@@ -2,6 +2,10 @@ from __future__ import absolute_import, unicode_literals
 
 import pyparsing
 
+def classname(obj):
+    """Returns the name of an objects class"""
+    return obj.__class__.__name__
+
 def patch_pyparsing():
     """Applies monkey-patches to pyparsing"""
     disable_artity_trimming()
