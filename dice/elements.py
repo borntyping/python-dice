@@ -1,12 +1,10 @@
 """Objects used in the evaluation of the parse tree"""
 
 from __future__ import absolute_import, unicode_literals, division
-from __future__ import print_function
 
 from collections import Iterable
 from random import randint
 
-from six import string_types
 from pyparsing import ParseResults
 
 from dice.utilities import classname
@@ -44,11 +42,11 @@ class Dice(object):
 
     @classmethod
     def parse(cls, string, location, tokens):
-        return cls(tokens[0][0], tokens[0][1])
+        return cls(tokens[0], tokens[1])
 
     @classmethod
     def parse_default(cls, string, location, tokens):
-        return cls(1, tokens[0][1])
+        return cls(1, tokens[1])
 
     @classmethod
     def from_string(cls, string):

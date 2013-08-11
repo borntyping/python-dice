@@ -4,9 +4,15 @@ from pyparsing import Literal
 
 from dice.tests import raises
 
+def test_enable_pyparsing_packrat_parsing():
+    """Test that packrat parsing was enabled"""
+    import pyparsing
+    assert pyparsing.ParserElement._packratEnabled
+
 def test_disable_pyparsing_arity_trimming():
     """Test that pyparsing._trim_arity has been replaced"""
-    import pyparsing, dice.utilities
+    import pyparsing
+    import dice.utilities
     assert pyparsing._trim_arity is dice.utilities._trim_arity
 
 def test_disable_pyparsing_arity_trimming_works():

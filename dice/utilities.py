@@ -8,9 +8,25 @@ def classname(obj):
     """Returns the name of an objects class"""
     return obj.__class__.__name__
 
-def patch_pyparsing():
+def patch_pyparsing(packrat=True, arity=True, verbose=True):
     """Applies monkey-patches to pyparsing"""
-    disable_pyparsing_arity_trimming()
+    if packrat:
+        enable_pyparsing_packrat()
+
+    if arity:
+        disable_pyparsing_arity_trimming()
+
+    if verbose:
+        enable_pyparsing_verbose_stacktrace()
+
+def enable_pyparsing_packrat():
+    """Enables pyparsing's packrat parsing, which is much faster for the type
+    of parsing being done in this library"""
+    pyparsing.ParserElement.enablePackrat()
+
+def enable_pyparsing_verbose_stacktrace():
+    """Enables verbose stacktraces in pyparsing"""
+    pyparsing.ParserElement.verbose_stacktrace = True
 
 def _trim_arity(func, maxargs=None):
     def wrapper(string, location, tokens):

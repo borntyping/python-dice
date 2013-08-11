@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name             = 'dice',
-    version          = '0.1.4',
+    version          = '0.1.5',
 
     author           = "Sam Clements",
     author_email     = "sam@borntyping.co.uk",
@@ -15,7 +15,7 @@ setup(
     long_description = open('README.rst').read(),
 
     packages         = find_packages(),
-    install_requires = ['pyparsing==2.0.1', 'six==1.3.0'],
+    install_requires = ['pyparsing==2.0.1'],
 
     entry_points     = {
         'console_scripts': ['roll = dice:main']
