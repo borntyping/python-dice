@@ -6,9 +6,10 @@ from sys import argv
 
 from pyparsing import ParseException
 
+from dice.elements import Dice, Roll, Bag
 from dice.grammar import expression
 
-__all__ = ['roll', 'main', 'ParseException']
+__all__ = ['roll', 'main', 'Dice', 'Roll', 'Bag', 'ParseException']
 
 def roll(string):
     return expression.parseString(string, parseAll=True)

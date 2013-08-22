@@ -21,9 +21,14 @@ class TestDice(object):
         for dice in ("d6", "1d6"):
             assert isinstance(parse(expression, dice), Dice)
 
+    def test_dice_value(self):
+        # TODO: This should not have to call roll()
+        for dice in ("d6", "1d6"):
+            assert 0 < int(parse(expression, dice).roll()) <= 6
+
     def test_dice_result(self):
-        # TODO: This should not have to evaluate()
-        for result in parse(expression, "6d6").evaluate():
+        # TODO: This should not have to call roll()
+        for result in parse(expression, "6d6").roll():
             assert 0 < result <= 6
 
 

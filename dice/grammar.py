@@ -81,8 +81,8 @@ integer = Word(nums).setParseAction(Integer.parse).setName("integer")
 
 # An expression in dice notation
 expression = operatorPrecedence(integer, [
-    (Literal('d').suppress(), 2, opAssoc.LEFT, Dice.parse),
-    (Literal('d'), 1, opAssoc.RIGHT, Dice.parse_default),
+    (Literal('d').suppress(), 2, opAssoc.LEFT, Dice.parse_binary),
+    (Literal('d').suppress(), 1, opAssoc.RIGHT, Dice.parse_unary),
 
     (Literal('+'), 2, opAssoc.LEFT),
     (Literal('-'), 2, opAssoc.LEFT),
