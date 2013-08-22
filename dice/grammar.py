@@ -9,6 +9,9 @@ module for more information.
 from __future__ import absolute_import, unicode_literals, division
 from __future__ import print_function
 
+from functools import wraps
+from operator import add, sub, mul, floordiv as div
+
 from pyparsing import (Forward, Literal, OneOrMore, StringStart, StringEnd,
     Suppress, Word, delimitedList, nums, opAssoc)
 
@@ -38,9 +41,9 @@ def operatorPrecedence(base, operators):
     def parse_operator(expr, arity, association, action=None):
         return expr, arity, association, action
 
-    for operator in operators:
+    for op in operators:
         # Use a function to default action to None
-        expr, arity, association, action = parse_operator(*operator)
+        expr, arity, association, action = parse_operator(*op)
 
         # Check that the arity is valid
         if arity < 1 or arity > 2:
@@ -79,15 +82,21 @@ def operatorPrecedence(base, operators):
 # An integer value
 integer = Word(nums).setParseAction(Integer.parse).setName("integer")
 
+def integer_operation(func):
+    @wraps(func)
+    def operate(string, location, tokens):
+        return func(*map(int, tokens))
+    return operate
+
 # An expression in dice notation
 expression = operatorPrecedence(integer, [
     (Literal('d').suppress(), 2, opAssoc.LEFT, Dice.parse_binary),
     (Literal('d').suppress(), 1, opAssoc.RIGHT, Dice.parse_unary),
 
-    (Literal('+'), 2, opAssoc.LEFT),
-    (Literal('-'), 2, opAssoc.LEFT),
-    (Literal('*'), 2, opAssoc.LEFT),
-    (Literal('/'), 2, opAssoc.LEFT),
+    (Literal('/').suppress(), 2, opAssoc.LEFT, integer_operation(div)),
+    (Literal('*').suppress(), 2, opAssoc.LEFT, integer_operation(mul)),
+    (Literal('-').suppress(), 2, opAssoc.LEFT, integer_operation(sub)),
+    (Literal('+').suppress(), 2, opAssoc.LEFT, integer_operation(add)),
 ]).setName("expression")
 
 # Multiple expressions can be separated with delimiters

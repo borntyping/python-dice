@@ -33,6 +33,10 @@ def test_dice_from_object(dice_constructors):
         d = Bag.dice_from_object(obj)
         assert d.amount == 2 and d.sides == 6
 
+def test_dice_from_object_exception():
+    with py.test.raises(TypeError):
+        Bag.dice_from_object(NotImplemented)
+
 def test_bag_length(dice_constructors):
     assert len(Bag(*dice_constructors)) == len(dice_constructors)
 
