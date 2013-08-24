@@ -2,35 +2,43 @@
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-import sys
 import argparse
 
 import dice.grammar
 import dice.utilities
 
-__all__ = ['roll', 'main', 'Dice', 'Roll', 'Bag', 'ParseException']
+__all__ = ['parse', 'roll', 'main', 'ParseException']
 __author__ = "Sam Clements <sam@borntyping.co.uk>"
 __version__ = "0.2.0"
 
 from pyparsing import ParseException
-from dice.elements import Dice, Roll, Bag
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
     '-v', '--version', action='version',
     version='dice v{0} by {1}'.format(__version__, __author__))
 parser.add_argument(
-    '-s', '--single', action='store_true', dest='single',
-    help="if a single element is returned, extract it from the list")
-parser.add_argument(
     'expression',
     help="the expression to parse and roll")
 
-def roll(string, single=False):
-    result = dice.grammar.notation.parseString(string, parseAll=True)
-    return dice.utilities.single(result) if single else result
+def _(obj):
+    print(obj)
+    return obj
 
-def main(*argv):
-    args = parser.parse_args(sys.argv if len(argv) == 0 else argv)
+def parse(string, grammar):
+    """Returns an AST parsed from an expression"""
+    return _(grammar.parseString(string, parseAll=True))
 
-    return roll(args.expression, single=args.single)
+def evaluate(string, grammar):
+    """Parse and then evaluate a string with a grammar"""
+    return _([element.evaluate() for element in parse(string, grammar)])
+
+def roll(string):
+    """Parses and evaluates an expression"""
+    return evaluate(string, dice.grammar.expression)
+
+def main(argv=None):
+    args = parser.parse_args(argv)
+    result = roll(args.expression)
+    print("Result:", dice.utilities.single(result))
+    return result

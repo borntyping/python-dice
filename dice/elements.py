@@ -1,43 +1,61 @@
 """Objects used in the evaluation of the parse tree"""
 
-from __future__ import absolute_import, unicode_literals, division
+from __future__ import absolute_import, print_function, unicode_literals
 
 import random
-import copy
-
-import six
 
 from dice.utilities import classname
 
-class Integer(int):
+
+class Element(object):
+    def evaluate(self, verbose=False):
+        """Evaluate the current object - a no-op by default"""
+        return self
+
+    def evaluate_object(self, obj, cls=None):
+        """Evaluates Elements, and optionally coerces objects to a class"""
+        if isinstance(obj, Element):
+            obj = obj.evaluate()
+        if cls is not None:
+            obj = cls(obj)
+        return obj
+
+    def print_evaluation(self, result):
+        """Prints an explanation of an evaluation"""
+        print("Evaluating:", str(self), "->", str(result))
+
+
+class Integer(int, Element):
     """A wrapper around the int class"""
 
     @classmethod
     def parse(cls, string, location, tokens):
         return cls(tokens[0])
 
-class Roll(list):
+
+class Roll(list, Element):
     """A result from rolling a group of dice"""
 
     @staticmethod
     def roll(amount, sides):
         return [random.randint(1, sides) for i in range(amount)]
 
-    def __init__(self, dice):
-        super(Roll, self).__init__(self.roll(dice.amount, dice.sides))
-        self.sides = dice.sides
+    def __init__(self, amount, sides):
+        super(Roll, self).__init__(self.roll(amount, sides))
+        self.sides = sides
 
     def __repr__(self):
-        return "{0}({1}, sides={0})".format(
+        return "{0}({1}, sides={2})".format(
             classname(self), str(self), self.sides)
 
     def __str__(self):
-        return ', '.join(self)
+        return ', '.join(map(str, self))
 
     def __int__(self):
         return sum(self)
 
-class Dice(object):
+
+class Dice(Element):
     """A group of dice, all with the same number of sides"""
 
     @classmethod
@@ -58,43 +76,27 @@ class Dice(object):
         return cls(int(amount), int(sides))
 
     def __init__(self, amount, sides):
-        self.amount, self.sides = int(amount), int(sides)
+        self.amount = amount
+        self.sides = sides
+        self.result = None
 
     def __repr__(self):
-        return "Dice('{0}d{1}')".format(self.amount, self.sides)
+        return "Dice({0!r}, {1!r})".format(self.amount, self.sides)
 
     def __str__(self):
-        return "{0}d{1}".format(self.amount, self.sides)
+        return "{0!s}d{1!s}".format(self.amount, self.sides)
 
-    def __int__(self):
-        # TODO: Remove this when dice are evaluated
-        return int(self.roll())
+    def evaluate(self, verbose=False):
+        self.amount = self.evaluate_object(self.amount, Integer)
+        self.sides = self.evaluate_object(self.sides, Integer)
 
-    def roll(self, cls=Roll):
-        return cls(self)
+        if self.result is None:
+            self.result = Roll(self.amount, self.sides)
 
-class Bag(list):
-    """A collection of dice objects"""
+        if verbose:
+            self.print_evaluation(self.result)
 
-    @staticmethod
-    def dice_from_object(obj, cls=Dice):
-        if isinstance(obj, cls):
-            return copy.copy(obj)
-        elif isinstance(obj, six.string_types):
-            return cls.from_string(obj)
-        elif isinstance(obj, (tuple, list)):
-            return cls.from_iterable(obj)
-        raise TypeError("Dice object cannot be created from " + repr(obj))
-
-    def __init__(self, *dice_list):
-        for d in dice_list:
-            self.append(self.dice_from_object(d))
-
-    def __repr__(self):
-        return "Bag({0})".format(','.join(map(repr, self)))
-
-    def __str__(self):
-        return ', '.join(map(str, self))
+        return self.result
 
     def roll(self):
-        return [d.roll() for d in self]
+        return self.evaluate(verbose=False)

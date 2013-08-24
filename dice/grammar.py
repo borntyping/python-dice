@@ -6,16 +6,13 @@ that get in the way of development and debugging. See the dice.utilities
 module for more information.
 """
 
-from __future__ import absolute_import, unicode_literals, division
-from __future__ import print_function
-
-from functools import wraps
-from operator import add, sub, mul, floordiv as div
+from __future__ import absolute_import, print_function, unicode_literals
 
 from pyparsing import (Forward, Literal, OneOrMore, StringStart, StringEnd,
-    Suppress, Word, delimitedList, nums, opAssoc)
+    Suppress, Word, nums, opAssoc)
 
 from dice.elements import Integer, Dice
+from dice.operators import Mul, Div, Sub, Add
 from dice.utilities import patch_pyparsing
 
 # Set PyParsing options
@@ -78,27 +75,19 @@ def operatorPrecedence(base, operators):
     expression <<= last
     return expression
 
-
 # An integer value
-integer = Word(nums).setParseAction(Integer.parse).setName("integer")
-
-def integer_operation(func):
-    @wraps(func)
-    def operate(string, location, tokens):
-        return func(*map(int, tokens))
-    return operate
+integer = Word(nums)
+integer.setParseAction(Integer.parse)
+integer.setName("integer")
 
 # An expression in dice notation
-expression = operatorPrecedence(integer, [
+expression = StringStart() + operatorPrecedence(integer, [
     (Literal('d').suppress(), 2, opAssoc.LEFT, Dice.parse_binary),
     (Literal('d').suppress(), 1, opAssoc.RIGHT, Dice.parse_unary),
 
-    (Literal('/').suppress(), 2, opAssoc.LEFT, integer_operation(div)),
-    (Literal('*').suppress(), 2, opAssoc.LEFT, integer_operation(mul)),
-    (Literal('-').suppress(), 2, opAssoc.LEFT, integer_operation(sub)),
-    (Literal('+').suppress(), 2, opAssoc.LEFT, integer_operation(add)),
-]).setName("expression")
-
-# Multiple expressions can be separated with delimiters
-notation = StringStart() + delimitedList(expression, ';') + StringEnd()
-notation.setName("notation")
+    (Literal('/').suppress(), 2, opAssoc.LEFT, Div.parse),
+    (Literal('*').suppress(), 2, opAssoc.LEFT, Mul.parse),
+    (Literal('-').suppress(), 2, opAssoc.LEFT, Sub.parse),
+    (Literal('+').suppress(), 2, opAssoc.LEFT, Add.parse),
+]) + StringEnd()
+expression.setName("expression")
