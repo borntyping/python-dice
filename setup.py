@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name             = 'dice',
-    version          = '0.1.7',
+    version          = '0.2.0',
 
     author           = "Sam Clements",
     author_email     = "sam@borntyping.co.uk",
@@ -16,12 +16,16 @@ setup(
 
     packages         = find_packages(),
     install_requires = [
+        'argparse==1.2.1',
         'pyparsing==2.0.1',
         'six==1.3.0'
     ],
 
     entry_points     = {
-        'console_scripts': ['roll = dice:main']
+        'console_scripts': [
+            'dice = dice:main',
+            'roll = dice:main'
+        ]
     },
 
     classifiers     = [

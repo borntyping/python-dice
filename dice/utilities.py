@@ -8,6 +8,10 @@ def classname(obj):
     """Returns the name of an objects class"""
     return obj.__class__.__name__
 
+def single(iterable):
+    """Returns a single item if the iterable has only one item"""
+    return iterable[0] if len(iterable) == 1 else list(iterable)
+
 def patch_pyparsing(packrat=True, arity=True, verbose=True):
     """Applies monkey-patches to pyparsing"""
     if packrat:
