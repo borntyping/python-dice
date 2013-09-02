@@ -1,0 +1,14 @@
+# Travis CI configuration
+# https://travis-ci.org/borntyping/python-dice
+
+language: python
+env:
+  - TOXENV=py26
+  - TOXENV=py27
+  - TOXENV=py32
+  - TOXENV=py33
+  - TOXENV=pypy
+install:
+  - pip install tox --use-mirrors
+script:
+  - tox
