@@ -14,7 +14,7 @@ def single(iterable):
     return iterable[0] if len(iterable) == 1 else iterable
 
 
-def patch_pyparsing(packrat=True, arity=True, verbose=True):
+def patch_pyparsing(packrat=True, arity=True):
     """Applies monkey-patches to pyparsing"""
     if packrat:
         enable_pyparsing_packrat()
@@ -22,21 +22,12 @@ def patch_pyparsing(packrat=True, arity=True, verbose=True):
     if arity:
         disable_pyparsing_arity_trimming()
 
-    if verbose:
-        enable_pyparsing_verbose_stacktrace()
-
 
 def enable_pyparsing_packrat():
     """Enables pyparsing's packrat parsing, which is much faster for the type
     of parsing being done in this library"""
     warnings.warn("Enabled pyparsing packrat parsing", ImportWarning)
     pyparsing.ParserElement.enablePackrat()
-
-
-def enable_pyparsing_verbose_stacktrace():
-    """Enables verbose stacktraces in pyparsing"""
-    warnings.warn("Enabled pyparsing verbose stacktrace", ImportWarning)
-    pyparsing.ParserElement.verbose_stacktrace = True
 
 
 def _trim_arity(func, maxargs=None):

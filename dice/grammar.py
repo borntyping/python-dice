@@ -14,8 +14,7 @@ from pyparsing import (CaselessLiteral, Forward, Literal, OneOrMore,
 from dice.elements import Integer, Dice, Total, Mul, Div, Sub, Add
 from dice.utilities import patch_pyparsing
 
-# Set PyParsing options
-patch_pyparsing(verbose=False)
+patch_pyparsing()
 
 def operatorPrecedence(base, operators):
     """
