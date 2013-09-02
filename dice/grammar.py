@@ -8,13 +8,15 @@ module for more information.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from pyparsing import (CaselessLiteral, Forward, Literal, OneOrMore,
-    StringStart, StringEnd, Suppress, Word, nums, opAssoc)
+from pyparsing import (
+    CaselessLiteral, Forward, Literal, OneOrMore, StringStart, StringEnd,
+    Suppress, Word, nums, opAssoc)
 
 from dice.elements import Integer, Dice, Total, Mul, Div, Sub, Add
 from dice.utilities import patch_pyparsing
 
 patch_pyparsing()
+
 
 def operatorPrecedence(base, operators):
     """

@@ -7,6 +7,7 @@ import operator
 
 from dice.utilities import classname
 
+
 class Element(object):
     def evaluate(self, verbose=False):
         """Evaluate the current object - a no-op by default"""

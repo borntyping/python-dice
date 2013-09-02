@@ -4,6 +4,7 @@ import warnings
 
 import pyparsing
 
+
 def classname(obj):
     """Returns the name of an objects class"""
     return obj.__class__.__name__

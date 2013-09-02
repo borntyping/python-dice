@@ -2,6 +2,7 @@
 
 from termcolor import colored
 
+
 def pytest_report_teststatus(report):
     if report.when != "call":
         return None, None, None

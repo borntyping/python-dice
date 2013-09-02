@@ -16,6 +16,7 @@ import dice
 
 __version__ = "dice v{0} by {1}".format(dice.__version__, dice.__author__)
 
+
 def main(argv=None):
     """Run roll() from a command line interface"""
     args = docopt.docopt(__doc__, argv=argv, version=__version__)
