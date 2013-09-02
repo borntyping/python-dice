@@ -8,11 +8,10 @@ module for more information.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from pyparsing import (Forward, Literal, OneOrMore, StringStart, StringEnd,
-    Suppress, Word, nums, opAssoc)
+from pyparsing import (CaselessLiteral, Forward, Literal, OneOrMore,
+    StringStart, StringEnd, Suppress, Word, nums, opAssoc)
 
-from dice.elements import Integer, Dice
-from dice.operators import Mul, Div, Sub, Add
+from dice.elements import Integer, Dice, Total, Mul, Div, Sub, Add
 from dice.utilities import patch_pyparsing
 
 # Set PyParsing options
@@ -89,5 +88,7 @@ expression = StringStart() + operatorPrecedence(integer, [
     (Literal('*').suppress(), 2, opAssoc.LEFT, Mul.parse),
     (Literal('-').suppress(), 2, opAssoc.LEFT, Sub.parse),
     (Literal('+').suppress(), 2, opAssoc.LEFT, Add.parse),
+
+    (CaselessLiteral('t').suppress(), 1, opAssoc.LEFT, Total.parse),
 ]) + StringEnd()
 expression.setName("expression")

@@ -24,22 +24,19 @@ parser.add_argument(
     'expression',
     help="the expression to parse and roll")
 
-def parse(string, grammar):
-    """Returns an AST parsed from an expression"""
-    return grammar.parseString(string, parseAll=True)
 
-def evaluate(string, grammar, **options):
-    """Parse and then evaluate a string with a grammar"""
-    return [e.evaluate(**options) for e in parse(string, grammar)]
-
-def roll(string, verbose=False):
+def roll(string, single=True, verbose=False):
     """Parses and evaluates an expression"""
-    return evaluate(string, grammar=dice.grammar.expression, verbose=verbose)
+    ast = dice.grammar.expression.parseString(string, parseAll=True)
+    result = [element.evaluate(verbose=verbose) for element in ast]
+    if single:
+        return dice.utilities.single(result)
+    return result
+
 
 def main(argv=None):
     args = parser.parse_args(argv)
     result = roll(args.expression, verbose=args.verbose)
-    result = dice.utilities.single(result)
     if args.verbose:
         print("Result:", end=" ")
     return result
