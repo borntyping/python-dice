@@ -27,7 +27,7 @@ class TestDice(object):
             assert 0 < die <= 6
 
 
-class TestFunctionOperators(object):
+class TestOperators(object):
     def test_add(self):
         assert roll('2 + 2') == 4
 
@@ -43,6 +43,19 @@ class TestFunctionOperators(object):
 
     def test_total(self):
         assert (6 * 1) <= roll('6d6t') <= (6 * 6)
+
+    def test_sort(self):
+        value = roll('6d6s')
+        assert value == sorted(value)
+        assert isinstance(value, Roll)
+
+    def test_drop(self):
+        value = roll('6d6 v 3')
+        assert len(value) == 3
+
+    def test_keep(self):
+        value = roll('6d6 ^ 3')
+        assert len(value) == 3
 
 
 class TestOperatorPrecedence(object):

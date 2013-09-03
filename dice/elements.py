@@ -9,7 +9,7 @@ from dice.utilities import classname
 
 
 class Element(object):
-    verbose = True
+    verbose = False
 
     def evaluate(self):
         """Evaluate the current object - a no-op by default"""
@@ -103,15 +103,14 @@ class Dice(Element):
 class Operator(Element):
     @classmethod
     def parse(cls, string, location, tokens):
-        return cls(operands=tokens)
+        return cls(*tokens)
 
-    def __init__(self, operands):
-        self.operands = operands
+    def __init__(self, *operands):
+        self.operands = self.orginal_operands = operands
 
     def __repr__(self):
         return "{0}({1})".format(
-            classname(self),
-            ', '.join(map(str, self.operands)))
+            classname(self), ', '.join(map(str, self.orginal_operands)))
 
     def evaluate(self):
         self.operands = map(self.evaluate_object, self.operands)
@@ -145,3 +144,23 @@ class Add(IntegerOperator):
 
 class Total(Operator):
     function = sum
+
+
+class Sort(Operator):
+    def function(self, iterable):
+        iterable.sort()
+        return iterable
+
+
+class Drop(Operator):
+    def function(self, iterable, n):
+        for die in sorted(iterable)[:n]:
+            iterable.remove(die)
+        return iterable
+
+
+class Keep(Operator):
+    def function(self, iterable, n):
+        for die in sorted(iterable)[:-n]:
+            iterable.remove(die)
+        return iterable

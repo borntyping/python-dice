@@ -12,7 +12,8 @@ from pyparsing import (
     CaselessLiteral, Forward, Literal, OneOrMore, StringStart, StringEnd,
     Suppress, Word, nums, opAssoc)
 
-from dice.elements import Integer, Dice, Total, Mul, Div, Sub, Add
+from dice.elements import (
+    Integer, Dice, Mul, Div, Sub, Add, Total, Sort, Drop, Keep)
 from dice.utilities import patch_pyparsing
 
 patch_pyparsing()
@@ -82,8 +83,8 @@ integer.setName("integer")
 
 # An expression in dice notation
 expression = StringStart() + operatorPrecedence(integer, [
-    (Literal('d').suppress(), 2, opAssoc.LEFT, Dice.parse_binary),
-    (Literal('d').suppress(), 1, opAssoc.RIGHT, Dice.parse_unary),
+    (CaselessLiteral('d').suppress(), 2, opAssoc.LEFT, Dice.parse_binary),
+    (CaselessLiteral('d').suppress(), 1, opAssoc.RIGHT, Dice.parse_unary),
 
     (Literal('/').suppress(), 2, opAssoc.LEFT, Div.parse),
     (Literal('*').suppress(), 2, opAssoc.LEFT, Mul.parse),
@@ -91,5 +92,9 @@ expression = StringStart() + operatorPrecedence(integer, [
     (Literal('+').suppress(), 2, opAssoc.LEFT, Add.parse),
 
     (CaselessLiteral('t').suppress(), 1, opAssoc.LEFT, Total.parse),
+    (CaselessLiteral('s').suppress(), 1, opAssoc.LEFT, Sort.parse),
+
+    (Literal('^').suppress(), 2, opAssoc.LEFT, Keep.parse),
+    (Literal('v').suppress(), 2, opAssoc.LEFT, Drop.parse),
 ]) + StringEnd()
 expression.setName("expression")
