@@ -9,25 +9,33 @@ from dice.utilities import classname
 
 
 class Element(object):
-    def evaluate(self, verbose=False):
+    verbose = True
+
+    def evaluate(self):
         """Evaluate the current object - a no-op by default"""
         return self
 
     def evaluate_object(self, obj, cls=None):
-        """Evaluates Elements, and optionally coerces objects to a class"""
+        """Evaluates elements, and coerces objects to a class if needed"""
         if isinstance(obj, Element):
-            obj = obj.evaluate()
+            obj = obj.evaluate_cached()
         if cls is not None:
             obj = cls(obj)
         return obj
 
-    def print_evaluation(self, result):
-        """Prints an explanation of an evaluation"""
-        print("Evaluating:", str(self), "->", str(result))
+    def evaluate_cached(self, verbose=None):
+        """Wraps evaluate(), caching results"""
+        if not hasattr(self, 'result'):
+            self.result = self.evaluate()
+            if self.verbose:
+                print("Evaluating:", str(self), "->", str(self.result))
+        return self.result
 
 
 class Integer(int, Element):
     """A wrapper around the int class"""
+
+    verbose = False
 
     @classmethod
     def parse(cls, string, location, tokens):
@@ -50,7 +58,7 @@ class Roll(list, Element):
             classname(self), str(self), self.sides)
 
     def __str__(self):
-        return ', '.join(map(str, self))
+        return '[' + ', '.join(map(str, self)) + ']'
 
     def __int__(self):
         return sum(self)
@@ -79,7 +87,6 @@ class Dice(Element):
     def __init__(self, amount, sides):
         self.amount = amount
         self.sides = sides
-        self.result = None
 
     def __repr__(self):
         return "Dice({0!r}, {1!r})".format(self.amount, self.sides)
@@ -87,20 +94,10 @@ class Dice(Element):
     def __str__(self):
         return "{0!s}d{1!s}".format(self.amount, self.sides)
 
-    def evaluate(self, verbose=False):
+    def evaluate(self):
         self.amount = self.evaluate_object(self.amount, Integer)
         self.sides = self.evaluate_object(self.sides, Integer)
-
-        if self.result is None:
-            self.result = Roll(self.amount, self.sides)
-
-        if verbose:
-            self.print_evaluation(self.result)
-
-        return self.result
-
-    def roll(self):
-        return self.evaluate(verbose=False)
+        return Roll(self.amount, self.sides)
 
 
 class Operator(Element):
@@ -114,42 +111,37 @@ class Operator(Element):
     def __repr__(self):
         return "{0}({1})".format(
             classname(self),
-            ', '.join(map(repr, self.operands)))
+            ', '.join(map(str, self.operands)))
 
     def evaluate(self):
-        raise NotImplementedError(
-            "Operator subclass has no evaluate()")
-
-    def evaluate_operands(self):
         self.operands = map(self.evaluate_object, self.operands)
-        return self.operands
+        return self.function(*self.operands)
 
-
-class FunctionOperator(Operator):
     @property
     def function(self):
-        raise NotImplementedError(
-            "FunctionOperator subclass has no function")
-
-    def evaluate(self, verbose=False):
-        return self.function(*self.evaluate_operands())
+        raise NotImplementedError("Operator subclass has no function")
 
 
-class Div(FunctionOperator):
+class IntegerOperator(Operator):
+    def evaluate_object(self, obj):
+        return super(IntegerOperator, self).evaluate_object(obj, Integer)
+
+
+class Div(IntegerOperator):
     function = operator.floordiv
 
 
-class Mul(FunctionOperator):
+class Mul(IntegerOperator):
     function = operator.mul
 
 
-class Sub(FunctionOperator):
+class Sub(IntegerOperator):
     function = operator.sub
 
 
-class Add(FunctionOperator):
+class Add(IntegerOperator):
     function = operator.add
 
 
-class Total(FunctionOperator):
+class Total(Operator):
     function = sum

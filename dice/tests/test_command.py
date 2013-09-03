@@ -4,7 +4,6 @@ import itertools
 
 from dice import roll
 from dice.command import main
-from dice.elements import Integer, Roll
 
 
 def test_roll():
@@ -13,7 +12,7 @@ def test_roll():
 
 
 def test_main():
-    assert isinstance(main(['2d6']), (Integer, Roll, list))
+    assert isinstance(main(['2d6']), str)
 
 
 def test_main_verbose():

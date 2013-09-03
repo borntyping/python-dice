@@ -17,10 +17,6 @@ def test_dice_from_string():
     assert d.amount == 2 and d.sides == 6
 
 
-def test_dice_roll():
-    assert isinstance(Dice(2, 6).roll(), Roll)
-
-
 def test_roll():
     amount, sides = 6, 6
     assert len(Roll.roll(amount, sides)) == amount

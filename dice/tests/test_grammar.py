@@ -36,6 +36,7 @@ class TestFunctionOperators(object):
 
     def test_mul(self):
         assert roll('2 * 2') == 4
+        assert roll('1d6 * 2') % 2 == 0
 
     def test_div(self):
         assert roll('2 / 2') == 1
