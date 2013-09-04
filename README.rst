@@ -2,30 +2,47 @@
 dice
 ====
 
-A library for parsing and evaluating dice notation.
+A library and command line tool for parsing and evaluating dice notation.
 
-Todo
-====
-
-* Unary and binary operators
-* Console and module API functions
-
-Notes
+Usage
 =====
 
-Some rough notes on how I want the API to look:
+From the command line::
 
-::
+    roll 3d6
 
-    >>> d = Dice('2d6')
-    Dice("Two six-sided dice")
-    >>> d.roll()
-    Roll(5, 5, sides=6)
-    >>> b = Bag('two six-sided dice', 'six-sided die', '4d2', (3,3), Dice('d1'))
-    >>> repr(b)
-    Bag((3,6), (4,2), (3,3))
-    >>> str(b)
-    "3d6, 4d2, 1d1"
+From python::
+
+    import dice
+    dice.roll('3d6')
+
+Notation
+========
+
+The expression works like a simple equation parser with some extra operators.
+
+*The following operators are listed in order of precedence.*
+
+The dice ('d') operator takes an amount (A) and a number of sides (S), and
+returns a list of A random numbers between 1 and S. For example: ``4d6`` may
+return ``[6, 3, 2, 4]``.
+
+If A is not specified, it is assumed you want to roll a single die.
+``d6`` is equivalent to ``1d6``.
+
+Basic integer operations are available: ``16 / 8 * 4 + 2 - 1 -> 9``.
+
+A set of rolls can be turned into an integer with the total (``t``) operator.
+``6d1t`` will return ``6`` instead of ``[1, 1, 1, 1, 1, 1]``. Applying
+integer operations to a list of rolls will total them automatically.
+
+A set of dice rolls can be sorted with the sort (``s``) operator. ``4d6s``
+will not change the return value, but the dice will be sorted from lowest to
+highest.
+
+The lowest or highest rolls can be selected with ``^`` and ``v``. ``6d6^3``
+will keep the highest 3 rolls, whereas ``6d6v3`` will select the lowest 3
+rolls.
 
 Licence
 =======
