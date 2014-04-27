@@ -10,7 +10,7 @@ import dice.utilities
 
 __all__ = ['roll', 'ParseException']
 __author__ = "Sam Clements <sam@borntyping.co.uk>"
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 
 def roll(string, single=True, verbose=False):

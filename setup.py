@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name             = 'dice',
-    version          = '1.0.0',
+    version          = '1.0.1',
 
     author           = "Sam Clements",
     author_email     = "sam@borntyping.co.uk",
@@ -16,8 +16,8 @@ setup(
 
     packages         = find_packages(),
     install_requires = [
-        'docopt==0.6.1',
-        'pyparsing==2.0.1'
+        'docopt>=0.6.1',
+        'pyparsing>=2.0.1'
     ],
 
     entry_points     = {
