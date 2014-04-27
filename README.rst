@@ -2,6 +2,15 @@
 dice
 ====
 
+.. image:: https://pypip.in/v/dice/badge.png
+    :target: https://pypi.python.org/pypi/dice
+    :alt: Latest PyPI version
+        
+.. image:: https://travis-ci.org/borntyping/python-dice.png
+    :target: https://travis-ci.org/borntyping/python-dice
+    :alt: Travis-CI build status
+           
+
 A library and command line tool for parsing and evaluating dice notation.
 
 Usage
