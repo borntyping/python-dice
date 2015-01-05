@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name             = 'dice',
-    version          = '1.0.1',
+    version          = '1.0.2',
 
     author           = "Sam Clements",
     author_email     = "sam@borntyping.co.uk",
@@ -13,6 +13,7 @@ setup(
 
     description      = "A library for parsing and evaluating dice notation",
     long_description = open('README.rst').read(),
+    license          = "MIT",
 
     packages         = find_packages(),
     install_requires = [
