@@ -11,9 +11,9 @@ def test_roll():
         assert roll('6d6', single=single, verbose=verbose)
 
 
-def test_main():
-    assert isinstance(main(['2d6']), str)
+def test_main(capsys):
+    main(['2d6'])
 
 
 def test_main_verbose():
-    assert main(['1d6', '--verbose'])
+    main(['2d6', '--verbose'])

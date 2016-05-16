@@ -23,4 +23,4 @@ def main(argv=None):
     result = dice.roll(args['<expression>'], verbose=args['--verbose'])
     if args['--verbose']:
         print("Result:", end=" ")
-    return str(result)
+    print(str(result))
