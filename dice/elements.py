@@ -5,7 +5,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 import random
 import operator
 
-from dice.utilities import classname
+from dice.utilities import classname, addevensubodd
 
 
 class Element(object):
@@ -140,6 +140,10 @@ class Sub(IntegerOperator):
 
 class Add(IntegerOperator):
     function = operator.add
+
+
+class AddEvenSubOdd(IntegerOperator):
+    function = addevensubodd
 
 
 class Total(Operator):
