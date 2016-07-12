@@ -45,3 +45,15 @@ def disable_pyparsing_arity_trimming():
     very hard to do."""
     warnings.warn("Disabled pyparsing arity trimming", ImportWarning)
     pyparsing._trim_arity = _trim_arity
+
+
+def addevensubodd(name="", a=0, b=0, *args, **kwds):
+    """Add even numbers, subtract odd ones. See http://1w6.org/w6 """
+    def _subodd(a):
+        if a % 2:
+            return - a
+        else:
+            return a
+    if b:
+        return a + _subodd(b)
+    return _subodd(a)

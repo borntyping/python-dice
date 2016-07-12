@@ -13,7 +13,7 @@ from pyparsing import (
     Suppress, Word, nums, opAssoc)
 
 from dice.elements import (
-    Integer, Dice, Mul, Div, Sub, Add, Total, Sort, Drop, Keep)
+    Integer, Dice, Mul, Div, Sub, Add, AddEvenSubOdd, Total, Sort, Drop, Keep)
 from dice.utilities import patch_pyparsing
 
 patch_pyparsing()
@@ -90,6 +90,8 @@ expression = StringStart() + operatorPrecedence(integer, [
     (Literal('*').suppress(), 2, opAssoc.LEFT, Mul.parse),
     (Literal('-').suppress(), 2, opAssoc.LEFT, Sub.parse),
     (Literal('+').suppress(), 2, opAssoc.LEFT, Add.parse),
+    (Word('+-').suppress(), 1, opAssoc.RIGHT, AddEvenSubOdd.parse),
+    (Word('+-').suppress(), 2, opAssoc.LEFT, AddEvenSubOdd.parse),
 
     (CaselessLiteral('t').suppress(), 1, opAssoc.LEFT, Total.parse),
     (CaselessLiteral('s').suppress(), 1, opAssoc.LEFT, Sort.parse),
