@@ -28,3 +28,10 @@ class TestEvaluate(object):
         roll('6d(6d6)t')
         ast = Total(Dice(6, Dice(6, 6)))
         assert ast.evaluate_cached() is ast.evaluate_cached()
+
+    def test_multiargs(self):
+        """Test that binary operators function properly when repeated"""
+        assert roll('1d1+1d1+1d1') == 3
+        assert roll('1d1-1d1-1d1') == -1
+        assert roll('1d1*1d1*1d1') == 1
+        assert roll('1d1/1d1/1d1') == 1
