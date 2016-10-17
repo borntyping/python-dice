@@ -10,6 +10,6 @@ env:
   - TOXENV=py35  
   - TOXENV=pypy
 install:
-  - pip install tox --use-mirrors
+  - pip install tox
 script:
   - tox
