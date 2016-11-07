@@ -164,7 +164,7 @@ class Sort(Operator):
 
 class Drop(Operator):
     def function(self, iterable, n):
-        for die in sorted(iterable)[:n]:
+        for die in sorted(iterable)[n:]:
             iterable.remove(die)
         return iterable
 
