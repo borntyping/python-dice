@@ -1,7 +1,9 @@
 from __future__ import absolute_import, unicode_literals, division
 
-from dice.elements import Integer, Roll
+from pyparsing import ParseException, ParseFatalException
+from dice.elements import Integer, Roll, WildRoll, ExplodedRoll
 from dice import roll
+from py.test import raises
 
 
 class TestInteger(object):
@@ -16,11 +18,38 @@ class TestInteger(object):
 class TestDice(object):
     def test_dice_value(self):
         assert 0 < int(roll('d6')) <= 6
-        assert 0 < int(roll('1d6')) <= 6
+        assert 0 < int(roll('6d6')) <= 36
+
+        assert 0 < int(roll('d%')) <= 100
+        assert 0 < int(roll('6d%')) <= 600
+
+        assert -1 <= int(roll('dF')) <= 1
+        assert -6 <= int(roll('6dF')) <= 6
+        assert -6 <= int(roll('u6')) <= 6
+        assert -36 < int(roll('6u6')) <= 36
+
+        assert 0 <= int(roll('w6'))
+        assert 0 <= int(roll('6w6'))
+
+        assert 0 < int(roll('d6x'))
+        assert 0 < int(roll('6d6x'))
 
     def test_dice_type(self):
         assert isinstance(roll('d6'), Roll)
-        assert isinstance(roll('1d6'), Roll)
+        assert isinstance(roll('6d6'), Roll)
+        assert isinstance(roll('d%'), Roll)
+        assert isinstance(roll('6d%'), Roll)
+
+        assert isinstance(roll('dF'), Roll)
+        assert isinstance(roll('6dF'), Roll)
+        assert isinstance(roll('u6'), Roll)
+        assert isinstance(roll('6u6'), Roll)
+
+        assert isinstance(roll('w6'), WildRoll)
+        assert isinstance(roll('6w6'), WildRoll)
+
+        assert isinstance(roll('d6x'), ExplodedRoll)
+        assert isinstance(roll('6d6x'), ExplodedRoll)
 
     def test_dice_values(self):
         for die in roll('6d6'):
@@ -41,6 +70,21 @@ class TestOperators(object):
     def test_div(self):
         assert roll('2 / 2') == 1
 
+    def test_identity(self):
+        assert roll('+2') == 2
+        assert roll('+(1, 2)') == [1, 2]
+
+    def test_negate(self):
+        assert roll('-2') == -2
+        assert roll('-(1, 2)') == [-1, -2]
+
+    def test_aeso(self):
+        assert roll('+-1') == -1
+        assert roll('+-2') == 2
+        assert roll('+-(1, 2)') == [-1, 2]
+
+
+class TestVectorOperators(object):
     def test_total(self):
         assert (6 * 1) <= roll('6d6t') <= (6 * 6)
 
@@ -53,9 +97,69 @@ class TestOperators(object):
         value = roll('6d6 v 3')
         assert len(value) == 3
 
+        value = roll('(1, 2, 5, 9, 3) v 3')
+        assert set(value) == set([1, 2, 3])
+
     def test_keep(self):
         value = roll('6d6 ^ 3')
         assert len(value) == 3
+
+        value = roll('(1, 2, 5, 9, 3) ^ 3')
+        assert set(value) == set([3, 5, 9])
+
+    def test_middle(self):
+        value = roll('6d6 o 3')
+        assert len(value) == 3
+
+        value = roll('(1, 2, 5, 9, 3) o 3')
+        assert set(value) == set([2, 3, 5])
+
+    def test_successes(self):
+        assert roll('(2, 4, 6, 8) e 5') == 2
+
+    def test_successe_failures(self):
+        assert roll('(1, 2, 4, 6, 8) f 5') == 1
+
+    def test_array_add(self):
+        assert roll('(2, 4, 6, 8) .+ 2') == [4, 6, 8, 10]
+
+    def test_array_sub(self):
+        assert roll('(2, 4, 6, 8) .- 2') == [0, 2, 4, 6]
+
+    def test_array(self):
+        rr = roll('2d6, 3d6, 4d6')
+        assert len(rr) == 3
+
+    def test_extend(self):
+        rr = roll('2d6 | 3d6, 4d6')
+        assert len(rr) == 4
+
+        rr2 = roll('2d6 | 3d6 | 4d6')
+        assert len(rr2) == 9
+
+        rr3 = roll('2d6 | 3d6 | 10 | 4d6')
+        assert len(rr3) == 10
+
+
+class TestErrors(object):
+    exc_types = (ParseException, ParseFatalException)
+
+    def run_test(self, expr, exceptions=exc_types):
+        with raises(exceptions, message='Expectiong %s to fail!' % expr):
+            roll(expr)
+
+    def test_bad_operators(self):
+        for expr in ('6d', '1+', '[1,2,3]', 'f', '3f', '3x'):
+            self.run_test(expr)
+
+    def test_invalid_rolls(self):
+        for expr in ('(-1)d6', '6d(-1)',
+                     'd0', '6d0'):
+            self.run_test(expr)
+
+    def test_unmatched_parenthesis(self):
+        for expr in ('(6d6', '6d6)'):
+            self.run_test(expr)
 
 
 class TestOperatorPrecedence(object):

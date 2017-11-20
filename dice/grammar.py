@@ -8,13 +8,16 @@ module for more information.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from pyparsing import (
-    CaselessLiteral, Forward, Literal, OneOrMore, StringStart, StringEnd,
-    Suppress, Word, nums, opAssoc)
+from pyparsing import (CaselessLiteral, Forward, Literal, OneOrMore,
+                       StringStart, StringEnd, Suppress, Word, nums, opAssoc)
 
-from dice.elements import (
-    Integer, Dice, Mul, Div, Sub, Add, AddEvenSubOdd, Total, Sort, Drop, Keep)
-from dice.utilities import patch_pyparsing
+from dice.elements import (Integer, FudgeDice, Successes, Mul, Div, Sub, Add,
+                           AddEvenSubOdd, Total, Sort, Lowest, Middle, Highest,
+                           Array, Extend, Explode, Reroll, ForceReroll, Negate,
+                           WildDice, SuccessFail, Identity, ArrayAdd, ArraySub)
+
+from dice.utilities import (patch_pyparsing, dice_select_unary,
+                            dice_select_binary)
 
 patch_pyparsing()
 
@@ -36,12 +39,12 @@ def operatorPrecedence(base, operators):
     # The initial expression
     last = base | Suppress('(') + expression + Suppress(')')
 
-    def parse_operator(expr, arity, association, action=None):
-        return expr, arity, association, action
+    def parse_operator(expr, arity, association, action=None, extra=None):
+        return expr, arity, association, action, extra
 
     for op in operators:
         # Use a function to default action to None
-        expr, arity, association, action = parse_operator(*op)
+        expr, arity, association, action, extra = parse_operator(*op)
 
         # Check that the arity is valid
         if arity < 1 or arity > 2:
@@ -55,15 +58,17 @@ def operatorPrecedence(base, operators):
 
         # Create an expression based on the association and arity
         if association is opAssoc.LEFT:
+            new_last = (last | extra) if extra else last
             if arity == 1:
-                operator_expression = last + OneOrMore(expr)
+                operator_expression = new_last + OneOrMore(expr)
             elif arity == 2:
-                operator_expression = last + OneOrMore(expr + last)
+                operator_expression = last + OneOrMore(expr + new_last)
         elif association is opAssoc.RIGHT:
+            new_this = (this | extra) if extra else this
             if arity == 1:
-                operator_expression = expr + this
+                operator_expression = expr + new_this
             elif arity == 2:
-                operator_expression = last + OneOrMore(this)
+                operator_expression = last + OneOrMore(new_this)
 
         # Set the parse action for the operator
         if action is not None:
@@ -76,27 +81,58 @@ def operatorPrecedence(base, operators):
     expression <<= last
     return expression
 
+
 # An integer value
 integer = Word(nums)
 integer.setParseAction(Integer.parse)
 integer.setName("integer")
 
+dice_element = CaselessLiteral('d').suppress()
+special = Literal('%') | CaselessLiteral('f')
+
 # An expression in dice notation
 expression = StringStart() + operatorPrecedence(integer, [
-    (CaselessLiteral('d').suppress(), 2, opAssoc.LEFT, Dice.parse_binary),
-    (CaselessLiteral('d').suppress(), 1, opAssoc.RIGHT, Dice.parse_unary),
+    (dice_element, 2, opAssoc.LEFT, dice_select_binary, special),
+    (dice_element, 1, opAssoc.RIGHT, dice_select_unary, special),
+
+    (CaselessLiteral('u').suppress(), 2, opAssoc.LEFT, FudgeDice.parse),
+    (CaselessLiteral('u').suppress(), 1, opAssoc.RIGHT, FudgeDice.parse_unary),
+
+    (CaselessLiteral('w').suppress(), 2, opAssoc.LEFT, WildDice.parse),
+    (CaselessLiteral('w').suppress(), 1, opAssoc.RIGHT, WildDice.parse_unary),
+
+    (CaselessLiteral('x').suppress(), 2, opAssoc.LEFT, Explode.parse),
+    (CaselessLiteral('x').suppress(), 1, opAssoc.LEFT, Explode.parse),
+    (CaselessLiteral('rr').suppress(), 2, opAssoc.LEFT, ForceReroll.parse),
+    (CaselessLiteral('rr').suppress(), 1, opAssoc.LEFT, ForceReroll.parse),
+    (CaselessLiteral('r').suppress(), 2, opAssoc.LEFT, Reroll.parse),
+    (CaselessLiteral('r').suppress(), 1, opAssoc.LEFT, Reroll.parse),
+
+    (Word('^hH', exact=1).suppress(), 2, opAssoc.LEFT, Highest.parse),
+    (Word('^hH', exact=1).suppress(), 1, opAssoc.LEFT, Highest.parse),
+    (Word('vlL', exact=1).suppress(), 2, opAssoc.LEFT, Lowest.parse),
+    (Word('vlL', exact=1).suppress(), 1, opAssoc.LEFT, Lowest.parse),
+    (Word('oOmM', exact=1).suppress(), 2, opAssoc.LEFT, Middle.parse),
+    (Word('oOmM', exact=1).suppress(), 1, opAssoc.LEFT, Middle.parse),
+    (CaselessLiteral('e').suppress(), 2, opAssoc.LEFT, Successes.parse),
+    (CaselessLiteral('f').suppress(), 2, opAssoc.LEFT, SuccessFail.parse),
+
+    (Literal('+-').suppress(), 1, opAssoc.RIGHT, AddEvenSubOdd.parse),
+    (Literal('+').suppress(), 1, opAssoc.RIGHT, Identity.parse),
+    (Literal('-').suppress(), 1, opAssoc.RIGHT, Negate.parse),
+
+    (CaselessLiteral('t').suppress(), 1, opAssoc.LEFT, Total.parse),
+    (CaselessLiteral('s').suppress(), 1, opAssoc.LEFT, Sort.parse),
+
+    (Literal('.+').suppress(), 2, opAssoc.LEFT, ArrayAdd.parse),
+    (Literal('.-').suppress(), 2, opAssoc.LEFT, ArraySub.parse),
 
     (Literal('/').suppress(), 2, opAssoc.LEFT, Div.parse),
     (Literal('*').suppress(), 2, opAssoc.LEFT, Mul.parse),
     (Literal('-').suppress(), 2, opAssoc.LEFT, Sub.parse),
     (Literal('+').suppress(), 2, opAssoc.LEFT, Add.parse),
-    (Word('+-').suppress(), 1, opAssoc.RIGHT, AddEvenSubOdd.parse),
-    (Word('+-').suppress(), 2, opAssoc.LEFT, AddEvenSubOdd.parse),
 
-    (CaselessLiteral('t').suppress(), 1, opAssoc.LEFT, Total.parse),
-    (CaselessLiteral('s').suppress(), 1, opAssoc.LEFT, Sort.parse),
-
-    (Literal('^').suppress(), 2, opAssoc.LEFT, Keep.parse),
-    (Literal('v').suppress(), 2, opAssoc.LEFT, Drop.parse),
+    (Literal(',').suppress(), 2, opAssoc.LEFT, Array.parse),
+    (Literal('|').suppress(), 2, opAssoc.LEFT, Extend.parse),
 ]) + StringEnd()
 expression.setName("expression")

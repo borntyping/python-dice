@@ -1,8 +1,10 @@
 """
 Usage:
-    roll [--verbose] <expression>
+    roll [--verbose] [--min | --max] [--] <expression>...
 
 Options:
+    -m --min        Make all rolls the lowest possible result
+    -M --max        Make all rolls the highest possible result
     -h --help       Show this help text
     -v --verbose    Show additional output
     -V --version    Show the package version
@@ -20,7 +22,23 @@ __version__ = "dice v{0} by {1}".format(dice.__version__, dice.__author__)
 def main(argv=None):
     """Run roll() from a command line interface"""
     args = docopt.docopt(__doc__, argv=argv, version=__version__)
-    result = dice.roll(args['<expression>'], verbose=args['--verbose'])
-    if args['--verbose']:
-        print("Result:", end=" ")
-    print(str(result))
+    verbose = bool(args['--verbose'])
+
+    f_roll = dice.roll
+
+    if args['--min']:
+        f_roll = dice.roll_min
+    elif args['--max']:
+        f_roll = dice.roll_max
+
+    expr = ' '.join(args['<expression>'])
+    roll = f_roll(expr, raw=True)
+
+    if verbose:
+        print('Result: ', end=" ")
+
+    print(str(roll.evaluate_cached()))
+
+    if verbose:
+        print('Breakdown:')
+        print(dice.utilities.verbose_print(roll))

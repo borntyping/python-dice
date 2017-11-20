@@ -4,71 +4,195 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 import random
 import operator
+from pyparsing import ParseFatalException
 
-from dice.utilities import classname, addevensubodd
+from dice.utilities import (classname, addevensubodd, do_explode, do_reroll,
+                            dice_switch)
+
+EXTREME_MIN = object()
+EXTREME_MAX = object()
+MAX_ROLL_DICE = 2**20
+DICE_MAP = {}
+
+
+def register_dice(cls):
+    if not issubclass(cls, RandomElement):
+        raise TypeError('can only register RandomElement subclasses as dice')
+    elif not cls.SEPERATOR:
+        raise TypeError('must specify seperator')
+    elif cls.SEPERATOR in DICE_MAP:
+        raise RuntimeError('seperator %s already registered' % cls.SEPERATOR)
+    DICE_MAP[cls.SEPERATOR] = cls
+    return cls
+
+
+class TooManyDice(ParseFatalException):
+    pass
 
 
 class Element(object):
-    verbose = False
-
-    def evaluate(self):
+    def evaluate(self, **kwargs):
         """Evaluate the current object - a no-op by default"""
         return self
 
-    def evaluate_object(self, obj, cls=None):
+    @staticmethod
+    def evaluate_object(obj, cls=None, cache=False, **kwargs):
         """Evaluates elements, and coerces objects to a class if needed"""
         if isinstance(obj, Element):
-            obj = obj.evaluate_cached()
+            if cache:
+                obj = obj.evaluate_cached(**kwargs)
+            else:
+                obj = obj.evaluate(cache=cache, **kwargs)
+
         if cls is not None:
             obj = cls(obj)
+
         return obj
 
-    def evaluate_cached(self, verbose=None):
+    def evaluate_cached(self, **kwargs):
         """Wraps evaluate(), caching results"""
         if not hasattr(self, 'result'):
-            self.result = self.evaluate()
-            if self.verbose:
-                print("Evaluating:", str(self), "->", str(self.result))
+            self.result = self.evaluate(cache=True, **kwargs)
+
         return self.result
 
 
 class Integer(int, Element):
     """A wrapper around the int class"""
 
-    verbose = False
-
     @classmethod
     def parse(cls, string, location, tokens):
         return cls(tokens[0])
 
 
-class Roll(list, Element):
-    """A result from rolling a group of dice"""
-
-    @staticmethod
-    def roll(amount, sides):
-        return [random.randint(1, sides) for i in range(amount)]
-
-    def __init__(self, amount, sides):
-        super(Roll, self).__init__(self.roll(amount, sides))
-        self.sides = sides
-
-    def __repr__(self):
-        return "{0}({1}, sides={2})".format(
-            classname(self), str(self), self.sides)
-
+class IntegerList(list, Element):
+    "Augments the standard list with an __int__ operator"
     def __str__(self):
-        return '[' + ', '.join(map(str, self)) + ']'
+        ret = '[%s]' % ', '.join(map(str, self))
+        if hasattr(self, "sum"):
+            ret += ' -> %i' % self
+        return ret
 
     def __int__(self):
-        return sum(self)
+        ret = sum(self)
+        self.sum = ret
+        return ret
 
 
-class Dice(Element):
-    """A group of dice, all with the same number of sides"""
+class Roll(IntegerList):
+    "Represents a randomized result from a random element"
 
     @classmethod
-    def parse_binary(cls, string, location, tokens):
+    def roll(cls, amount, min_value, max_value, **kwargs):
+        return [cls.roll_single(min_value, max_value, **kwargs)
+                for i in range(amount)]
+
+    @classmethod
+    def roll_single(cls, min_value, max_value, **kwargs):
+        return random.randint(min_value, max_value)
+
+    def do_roll(self, amount=None, min_value=None, max_value=None, **kwargs):
+        element = self.random_element
+        if amount is None:
+            amount = element.amount
+        if min_value is None:
+            min_value = element.min_value
+        if max_value is None:
+            max_value = element.max_value
+
+        amount = self.evaluate_object(amount, Integer, **kwargs)
+        min_value = self.evaluate_object(min_value, Integer, **kwargs)
+        max_value = self.evaluate_object(max_value, Integer, **kwargs)
+
+        if amount > MAX_ROLL_DICE:
+            raise TooManyDice("The number of dice is too damn high!")
+        elif amount < 0:
+            raise ParseFatalException("Cannot roll less than zero dice!")
+        elif min_value > max_value:
+            raise ParseFatalException('Roll must have a valid range')
+
+        return self.roll(amount, min_value, max_value, **kwargs)
+
+    def do_roll_single(self, min_value=None, max_value=None):
+        element = self.random_element
+
+        if self.force_extreme is EXTREME_MIN:
+            return element.min_value
+        elif self.force_extreme is EXTREME_MAX:
+            return element.max_value
+
+        if min_value is None:
+            min_value = element.min_value
+
+        if max_value is None:
+            max_value = element.max_value
+
+        return self.roll_single(min_value, max_value)
+
+    def __init__(self, random_element, rolled=None, force_extreme=None,
+                 **kwargs):
+        self.random_element = random_element
+        self.force_extreme = force_extreme
+
+        amount = random_element.amount
+        min_value = random_element.min_value
+        max_value = random_element.max_value
+
+        if rolled is None:
+            if force_extreme is EXTREME_MIN:
+                rolled = [min_value] * amount
+            elif force_extreme is EXTREME_MAX:
+                rolled = [max_value] * amount
+            else:
+                rolled = self.do_roll(**kwargs)
+
+        super(Roll, self).__init__(rolled)
+
+    def __repr__(self):
+        return "{0}({1}, random_element={2!r})".format(
+            classname(self), str(self), self.random_element)
+
+
+class WildRoll(Roll):
+    "Represents a roll of wild dice"
+
+    @classmethod
+    def roll(cls, amount, min_value, max_value, **kwargs):
+
+        amount = cls.evaluate_object(amount, Integer, **kwargs)
+        min_value = cls.evaluate_object(min_value, Integer, **kwargs)
+        max_value = cls.evaluate_object(max_value, Integer, **kwargs)
+
+        if amount == 0:
+            return []
+
+        rolls = [random.randint(min_value, max_value) for i in range(amount)]
+
+        while rolls[-1] == max_value:
+            rolls.append(random.randint(min_value, max_value))
+
+        if len(rolls) == amount and rolls[-1] == min_value:  # failure
+            rolls[-1] = 0
+            rolls[rolls.index(max(rolls))] = 0
+            if random.randint(min_value, max_value) == min_value:
+                return [0] * amount
+
+        return rolls
+
+
+class ExplodedRoll(Roll):
+    "Represents an exploded roll"
+    def __init__(self, original, rolled, **kwargs):
+        super(ExplodedRoll, self).__init__(original, rolled=rolled, **kwargs)
+
+
+class RandomElement(Element):
+    "Represents a set of elements with a random numerical result"
+
+    SEPERATOR = None
+
+    @classmethod
+    def parse(cls, string, location, tokens):
         return cls(*tokens)
 
     @classmethod
@@ -81,12 +205,33 @@ class Dice(Element):
 
     @classmethod
     def from_string(cls, string):
-        amount, sides = string.split('d', 1)
-        return cls(int(amount), int(sides))
+        string = string.lower()
+        for k in DICE_MAP:
+            ss = string.split(k)
+            if len(ss) != 2:
+                continue
+            ss = [int(x) if x.isdigit() else x for x in ss]
+            return dice_switch(ss[0], ss[1], k)
 
-    def __init__(self, amount, sides):
+    def __init__(self, amount, min_value, max_value, **kwargs):
         self.amount = amount
-        self.sides = sides
+        self.min_value = min_value
+        self.max_value = max_value
+
+    def evaluate(self, **kwargs):
+        return Roll(self, **kwargs)
+
+
+@register_dice
+class Dice(RandomElement):
+    """A group of dice, all with the same number of sides"""
+
+    SEPERATOR = 'd'
+
+    def __init__(self, amount, max_value, min_value=1):
+        super(Dice, self).__init__(amount, min_value, max_value)
+        self.sides = max_value
+        self.original_operands = (amount, max_value)
 
     def __repr__(self):
         return "Dice({0!r}, {1!r})".format(self.amount, self.sides)
@@ -94,10 +239,37 @@ class Dice(Element):
     def __str__(self):
         return "{0!s}d{1!s}".format(self.amount, self.sides)
 
-    def evaluate(self):
-        self.amount = self.evaluate_object(self.amount, Integer)
-        self.sides = self.evaluate_object(self.sides, Integer)
-        return Roll(self.amount, self.sides)
+
+@register_dice
+class WildDice(Dice):
+    "A group of dice with the last being explodable or a failure mode on 1"
+
+    SEPERATOR = 'w'
+
+    def __repr__(self):
+        return "WildDice({0!r}, {1!r})".format(self.amount, self.max_value)
+
+    def __str__(self):
+        return "{0!s}W{1!s}".format(self.amount, self.max_value)
+
+    def evaluate(self, **kwargs):
+        return WildRoll(self, **kwargs)
+
+
+@register_dice
+class FudgeDice(Dice):
+    "A group of dice whose sides range from -x to x, including 0"
+
+    SEPERATOR = 'u'
+
+    def __init__(self, amount, range):
+        super(FudgeDice, self).__init__(amount, range, -range)
+
+    def __repr__(self):
+        return "FudgeDice({0!r}, {1!r})".format(self.amount, self.max_value)
+
+    def __str__(self):
+        return "{0!s}U{1!s}".format(self.amount, self.max_value)
 
 
 class Operator(Element):
@@ -106,14 +278,21 @@ class Operator(Element):
         return cls(*tokens)
 
     def __init__(self, *operands):
-        self.operands = self.orginal_operands = operands
+        self.operands = self.original_operands = operands
 
     def __repr__(self):
         return "{0}({1})".format(
-            classname(self), ', '.join(map(str, self.orginal_operands)))
+            classname(self), ', '.join(map(str, self.original_operands)))
 
-    def evaluate(self):
-        self.operands = list(map(self.evaluate_object, self.operands))
+    def evaluate(self, **kwargs):
+        def eval_wrapper(operand):
+            return self.evaluate_object(operand, **kwargs)
+
+        if not kwargs.get('cache', False):
+            self.operands = self.original_operands
+
+        self.operands = list(map(eval_wrapper, self.operands))
+
         try:
             return self.function(*self.operands)
         except TypeError:
@@ -128,8 +307,9 @@ class Operator(Element):
 
 
 class IntegerOperator(Operator):
-    def evaluate_object(self, obj):
-        return super(IntegerOperator, self).evaluate_object(obj, Integer)
+    def evaluate_object(self, obj, **kwargs):
+        return super(IntegerOperator, self).evaluate_object(obj, Integer,
+                                                            **kwargs)
 
 
 class Div(IntegerOperator):
@@ -148,7 +328,7 @@ class Add(IntegerOperator):
     function = operator.add
 
 
-class AddEvenSubOdd(IntegerOperator):
+class AddEvenSubOdd(Operator):
     function = addevensubodd
 
 
@@ -156,21 +336,179 @@ class Total(Operator):
     function = sum
 
 
+class Successes(Operator):
+    def function(self, iterable, thresh):
+        if not isinstance(iterable, IntegerList):
+            iterable = (iterable,)
+        elif isinstance(iterable, Roll):
+            if thresh > iterable.random_element.max_value:
+                raise ParseFatalException("Success threshold higher than "
+                                          " roll result.")
+        return sum(x >= thresh for x in iterable)
+
+
+class SuccessFail(Operator):
+    def function(self, iterable, thresh):
+        result = 0
+        if not isinstance(iterable, IntegerList):
+            iterable = (iterable,)
+        elif isinstance(iterable, Roll):
+            if thresh > iterable.random_element.max_value:
+                raise ParseFatalException("Success threshold higher than "
+                                          "maximum roll result.")
+
+        if isinstance(iterable, Roll):
+            fail_level = iterable.random_element.min_value
+        else:
+            fail_level = 1
+
+        for x in iterable:
+            if x >= thresh:
+                result += 1
+            elif x <= fail_level:
+                result -= 1
+
+        return result
+
+
 class Sort(Operator):
     def function(self, iterable):
+        if not isinstance(iterable, IntegerList):
+            iterable = list(iterable)
         iterable.sort()
         return iterable
 
 
-class Drop(Operator):
-    def function(self, iterable, n):
-        for die in sorted(iterable)[n:]:
-            iterable.remove(die)
-        return iterable
+class Extend(Operator):
+    def function(self, *args):
+        ret = IntegerList()
+        for x in args:
+            try:
+                ret.extend(x)
+            except TypeError:
+                ret.append(x)
+        return ret
 
 
-class Keep(Operator):
-    def function(self, iterable, n):
-        for die in sorted(iterable)[:-n]:
-            iterable.remove(die)
-        return iterable
+class Array(Operator):
+    def function(self, *args):
+        ret = IntegerList()
+        for x in args:
+            try:
+                x = sum(x)
+            except TypeError:
+                pass
+            ret.append(x)
+        return ret
+
+
+class Lowest(Operator):
+    def function(self, iterable, n=None):
+        if not isinstance(iterable, IntegerList):
+            raise ParseFatalException("Can't take the lowest values of "
+                                      "a scalar!")
+        if n is None:
+            n = len(iterable) - 1
+        iterable = sorted(iterable)[:n]
+        random.shuffle(iterable)
+        return IntegerList(iterable)
+
+
+class Highest(Operator):
+    def function(self, iterable, n=None):
+        if not isinstance(iterable, IntegerList):
+            raise ParseFatalException("Can't take the highest values of "
+                                      "a scalar!")
+        if n is None:
+            n = len(iterable) - 1
+        iterable = sorted(iterable)[-n:]
+        random.shuffle(iterable)
+        return IntegerList(iterable)
+
+
+class Middle(Operator):
+    def function(self, iterable, n=None):
+        if not isinstance(iterable, IntegerList):
+            raise ParseFatalException("Can't take the middle values of "
+                                      "a scalar!")
+        num = len(iterable)
+        if n is None:
+            n = (num - 2) if num > 2 else 1
+
+        num_remove = num - n
+        upper = num_remove // 2
+        lower = num_remove - upper
+
+        iterable = sorted(iterable)[lower:-upper]
+        random.shuffle(iterable)  # nobody has to know :v
+        return IntegerList(iterable)
+
+
+class Explode(Operator):
+    def function(self, roll, thresh=None):
+        if not isinstance(roll, Roll):
+            raise ParseFatalException('Cannot explode {0}'.format(roll))
+        elif thresh is None:
+            thresh = roll.random_element.max_value
+
+        if thresh == roll.random_element.min_value:
+            raise ParseFatalException('Refusing to explode with threshold '
+                                      'same as min roll.')
+        return do_explode(roll, thresh)
+
+
+class Reroll(Operator):
+    def function(self, roll, thresh=None):
+        if not isinstance(roll, Roll):
+            raise ParseFatalException('Cannot reroll {0}'.format(roll))
+        return do_reroll(roll, thresh)
+
+
+class ForceReroll(Operator):
+    def function(self, roll, thresh=None):
+        if not isinstance(roll, Roll):
+            raise ParseFatalException('Cannot reroll {0}'.format(roll))
+        return do_reroll(roll, thresh, force_min=True)
+
+
+class Identity(Operator):
+    def __new__(self, x):
+        return x
+
+    def function(self, x):
+        return x
+
+
+class Negate(Operator):
+    def function(self, operand):
+        try:
+            operand = list(operand)
+            for i, x in enumerate(operand):
+                operand[i] = -x
+            return operand
+        except TypeError:
+            return -operand
+
+
+class ArrayAdd(Operator):
+    def function(self, iterable, scalar):
+        try:
+            scalar = int(scalar)
+            iterable = list(iterable)
+            for i, x in enumerate(iterable):
+                iterable[i] = x + scalar
+            return iterable
+        except TypeError:
+            raise ParseFatalException('Invalid operands for array add')
+
+
+class ArraySub(Operator):
+    def function(self, iterable, scalar):
+        try:
+            scalar = int(scalar)
+            iterable = list(iterable)
+            for i, x in enumerate(iterable):
+                iterable[i] = x - scalar
+            return iterable
+        except TypeError:
+            raise ParseFatalException('Invalid operands for array sub')

@@ -1,8 +1,12 @@
 from __future__ import absolute_import, unicode_literals
 
+import dice.elements
 import warnings
-
 import pyparsing
+from pyparsing import ParseException, ParseFatalException
+
+MAX_EXPLOSIONS = 2**8
+BREAKDOWN_INDENT = 2
 
 
 def classname(obj):
@@ -47,13 +51,150 @@ def disable_pyparsing_arity_trimming():
     pyparsing._trim_arity = _trim_arity
 
 
-def addevensubodd(name="", a=0, b=0, *args, **kwds):
+def addevensubodd(operator, operand):
     """Add even numbers, subtract odd ones. See http://1w6.org/w6 """
-    def _subodd(a):
-        if a % 2:
-            return - a
+    try:
+        for i, x in enumerate(operand):
+            if x % 2:
+                operand[i] = -x
+        return operand
+    except TypeError:
+        if operand % 2:
+            return -operand
+        return operand
+
+
+def dice_switch(amount, dicetype, kind='d'):
+    kind = kind.lower()
+    if len(kind) != 1:
+        raise ParseException("Dice operator must be 1 letter if not numeric")
+
+    if isinstance(dicetype, int) and int(dicetype) < 1:
+        raise ParseFatalException("Number of sides must be one or more")
+    elif isinstance(dicetype, str):
+        dicetype = dicetype.lower()
+
+    if kind == 'd':
+        random_element = dice.elements.Dice
+    elif kind == 'u':
+        random_element = dice.elements.FudgeDice
+    elif kind == 'w':
+        random_element = dice.elements.WildDice
+    else:
+        raise ParseFatalException("unknown kind: " % kind)
+
+    if dicetype == 'f':
+        if kind not in ('d', 'u'):
+            raise ParseFatalException("can only use dF or uF")
+        random_element = dice.elements.FudgeDice
+        dicetype = 1
+    elif str(dicetype) == '%':
+        dicetype = 100
+
+    return random_element(amount, dicetype)
+
+
+def dice_select_unary(string, location, tokens):
+    if len(tokens) != 1:
+        raise ParseFatalException('Cannot stack dice operators!')
+
+    return dice_switch(1, tokens[0])
+
+
+def dice_select_binary(string, location, tokens):
+    if len(tokens) != 2:
+        raise ParseFatalException('Cannot stack dice operators!')
+
+    amount, dicetype = tokens
+    return dice_switch(amount, dicetype)
+
+
+def do_explode(roll, thresh):
+    explosions = 0
+    result = list(roll)
+    rerolled = roll
+
+    while rerolled:
+        explosions += 1
+        if explosions >= MAX_EXPLOSIONS:
+            raise ParseFatalException('Too many explosions!')
+
+        num_rerolls = sum(x >= thresh for x in rerolled)
+        rerolled = roll.do_roll(num_rerolls)
+        result.extend(rerolled)
+
+    return dice.elements.ExplodedRoll(roll.random_element, result)
+
+
+def do_reroll(roll, thresh, force_min=False):
+    elem = roll.random_element
+    if thresh is None:
+        thresh = elem.min_value
+    max_min = min((elem.max_value, thresh + 1))
+    kwargs = {'min_value': max_min} if force_min else {}
+
+    for i, x in enumerate(roll):
+        if x <= thresh:
+            roll[i] = roll.do_roll_single(**kwargs)
+
+    return roll
+
+
+def verbose_print_op(element, indent):
+    lines = []
+    lines.append([indent, classname(element) + '('])
+    num_ops = len(element.original_operands)
+
+    for i, e in enumerate(element.original_operands):
+        newlines = verbose_print_sub(e, indent + BREAKDOWN_INDENT)
+
+        if len(newlines) > 1 or num_ops > 1:
+            if i + 1 < num_ops:
+                newlines[-1].append(',')
+            lines.extend(newlines)
         else:
-            return a
-    if b:
-        return a + _subodd(b)
-    return _subodd(a)
+            lines[-1].extend(newlines[0][1:])
+
+    closing = ') -> %s' % element.result
+
+    if num_ops > 1 or len(lines) > 1 and lines[-1][0] < lines[-2][0]:
+        lines.append([indent, closing])
+    else:
+        lines[-1].append(closing)
+
+    return lines
+
+
+def verbose_print_sub(element, indent=0):
+    lines = []
+
+    if isinstance(element, dice.elements.Operator):
+        return verbose_print_op(element, indent)
+
+    elif isinstance(element, dice.elements.Dice):
+        if any(not isinstance(op, (dice.elements.Integer, int))
+               for op in element.original_operands):
+            return verbose_print_op(element, indent)
+
+        line = 'roll %s -> %s' % (element, element.result)
+
+    elif isinstance(element, (dice.elements.Integer,
+                              dice.elements.IntegerList)):
+        line = str(element)
+
+    elif isinstance(element, dice.elements.Element):
+        line = '%s: %s -> %s' % (classname(element), element, element.result)
+
+    else:
+        line = str(element)
+
+    lines.append([indent, line])
+    return lines
+
+
+def verbose_print(element):
+    if not hasattr(element, 'result'):
+        element.evaluate_cached()
+
+    lines = verbose_print_sub(element)
+    return '\n'.join((' ' * t[0] + ''.join(t[1:])) for t in lines)
