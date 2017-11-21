@@ -12,7 +12,7 @@ import dice.utilities
 __all__ = ['roll', 'roll_min', 'roll_max', 'ParseException', 'TooManyDice']
 __author__ = ("Sam Clements <sam@borntyping.co.uk>, "
               "Caleb Johnson <me@calebj.io>")
-__version__ = '1.2.0'
+__version__ = '2.0.0'
 
 
 def roll(string, **kwargs):
