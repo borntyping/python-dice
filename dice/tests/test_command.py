@@ -1,14 +1,15 @@
 from __future__ import absolute_import
 
 import itertools
-
-from dice import roll
+from dice import roll, roll_min, roll_max
 from dice.command import main
 
 
 def test_roll():
-    for single, verbose in itertools.product((True, False), (True, False)):
-        assert roll('6d6', single=single, verbose=verbose)
+    for single, raw in itertools.product((True, False), (True, False)):
+        assert roll('6d6', single=single, raw=raw)
+        assert roll_min('6d6', single=single, raw=raw)
+        assert roll_max('6d6', single=single, raw=raw)
 
 
 def test_main(capsys):
