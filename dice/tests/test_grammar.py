@@ -1,8 +1,8 @@
 from __future__ import absolute_import, unicode_literals, division
 
-from pyparsing import ParseException, ParseFatalException
+from pyparsing import ParseException, ParseFatalException, Word, opAssoc
 from dice.elements import Integer, Roll, WildRoll, ExplodedRoll
-from dice import roll
+from dice import roll, roll_min, roll_max, grammar
 from py.test import raises
 
 
@@ -93,12 +93,20 @@ class TestVectorOperators(object):
         assert value == sorted(value)
         assert isinstance(value, Roll)
 
+        assert roll('6s') == 6
+
     def test_drop(self):
         value = roll('6d6 v 3')
         assert len(value) == 3
 
         value = roll('(1, 2, 5, 9, 3) v 3')
         assert set(value) == set([1, 2, 3])
+
+        value = roll('6d6v')
+        assert len(value) == 5
+
+        with raises(ParseFatalException):
+            roll('6 v 3')
 
     def test_keep(self):
         value = roll('6d6 ^ 3')
@@ -107,6 +115,12 @@ class TestVectorOperators(object):
         value = roll('(1, 2, 5, 9, 3) ^ 3')
         assert set(value) == set([3, 5, 9])
 
+        value = roll('6d6^')
+        assert len(value) == 5
+
+        with raises(ParseFatalException):
+            roll('6 ^ 3')
+
     def test_middle(self):
         value = roll('6d6 o 3')
         assert len(value) == 3
@@ -114,11 +128,25 @@ class TestVectorOperators(object):
         value = roll('(1, 2, 5, 9, 3) o 3')
         assert set(value) == set([2, 3, 5])
 
+        value = roll('6d6o')
+        assert len(value) == 4
+
+        with raises(ParseFatalException):
+            roll('6 o 3')
+
     def test_successes(self):
         assert roll('(2, 4, 6, 8) e 5') == 2
+        assert roll('6 e 5') == 1
+        assert roll('100d20e1') == 100
+        with raises(ParseFatalException):
+            roll('d20 e 21')
 
     def test_successe_failures(self):
         assert roll('(1, 2, 4, 6, 8) f 5') == 1
+        assert roll('6 f 5') == 1
+        assert roll('100d20f1') == 100
+        with raises(ParseFatalException):
+            roll('d20 f 21')
 
     def test_array_add(self):
         assert roll('(2, 4, 6, 8) .+ 2') == [4, 6, 8, 10]
@@ -141,6 +169,26 @@ class TestVectorOperators(object):
         assert len(rr3) == 10
 
 
+class TestDiceOperators(object):
+    def test_reroll(self):
+        r = roll('6d6r')
+        assert len(r) == 6
+
+    def test_force_reroll(self):
+        r2 = roll('1000d6rr')
+        assert 1 not in r2
+
+        r3 = roll('100d6rr5')
+        assert all(x > 5 for x in r3)
+
+    def test_extreme_reroll(self):
+        r = roll_min('2d6r')
+        assert r == [1, 1]
+
+        r = roll_max('2d6r6')
+        assert r == [6, 6]
+
+
 class TestErrors(object):
     exc_types = (ParseException, ParseFatalException)
 
@@ -149,7 +197,7 @@ class TestErrors(object):
             roll(expr)
 
     def test_bad_operators(self):
-        for expr in ('6d', '1+', '[1,2,3]', 'f', '3f', '3x'):
+        for expr in ('6d', '1+', '[1,2,3]', 'f', '3f', '3x', '6.+6', '7.-7'):
             self.run_test(expr)
 
     def test_invalid_rolls(self):
@@ -159,6 +207,13 @@ class TestErrors(object):
 
     def test_unmatched_parenthesis(self):
         for expr in ('(6d6', '6d6)'):
+            self.run_test(expr)
+
+    def test_explode_min(self):
+        self.run_test('6d6x1')
+
+    def test_invalid_reroll(self):
+        for expr in ('6r', '(1,2)r', '6rr', '(1,2)rr'):
             self.run_test(expr)
 
 
@@ -182,3 +237,19 @@ class TestExpression(object):
 
     def test_sub_expression(self):
         assert isinstance(roll('(2d6)d(2d6)'), Roll)
+
+
+class TestBadPrecedence(object):
+    def test_invalid_arity(self):
+        with raises(Exception):
+            grammar.operatorPrecedence(
+                grammar.integer,
+                [(Word('0'), 3, opAssoc.LEFT, Integer.parse)]
+            )
+
+    def test_invalid_association(self):
+        with raises(Exception):
+            grammar.operatorPrecedence(
+                grammar.integer,
+                [(Word('0'), 2, None, Integer.parse)]
+            )
