@@ -9,10 +9,11 @@ import dice.elements
 import dice.grammar
 import dice.utilities
 
-__all__ = ['roll', 'roll_min', 'roll_max', 'ParseException', 'TooManyDice']
+__all__ = ['roll', 'roll_min', 'roll_max', 'ParseException', 'TooManyDice',
+           'elements', 'grammar', 'command', 'utilities']
 __author__ = ("Sam Clements <sam@borntyping.co.uk>, "
               "Caleb Johnson <me@calebj.io>")
-__version__ = '2.0.0'
+__version__ = '2.1.0'
 
 
 def roll(string, **kwargs):
@@ -34,14 +35,17 @@ def parse_expression(string):
     return dice.grammar.expression.parseString(string, parseAll=True)
 
 
-def _roll(string, single=True, raw=False, **kwargs):
+def _roll(string, single=True, raw=False, return_kwargs=False, **kwargs):
     ast = parse_expression(string)
     elements = list(ast)
-    result = [element.evaluate_cached(**kwargs) for element in elements]
 
-    ret = elements if raw else result
+    if not raw:
+        elements = [element.evaluate_cached(**kwargs) for element in elements]
 
     if single:
-        return dice.utilities.single(ret)
+        elements = dice.utilities.single(elements)
 
-    return ret
+    if return_kwargs:
+        return elements, kwargs
+
+    return elements

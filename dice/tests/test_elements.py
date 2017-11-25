@@ -4,7 +4,9 @@ from pyparsing import ParseException, ParseFatalException
 from py.test import raises
 
 from dice.elements import (Integer, Roll, WildRoll, Dice, FudgeDice, Total,
-                           MAX_ROLL_DICE, TooManyDice)
+                           MAX_ROLL_DICE, TooManyDice, Element, RandomElement,
+                           WildDice)
+from dice import elements
 from dice import roll, roll_min, roll_max
 
 
@@ -22,7 +24,23 @@ class TestElements(object):
 
     def test_dice_from_string(self):
         d = Dice.from_string('2d6')
+        assert type(d) is Dice
         assert d.amount == 2 and d.sides == 6
+
+        w = Dice.from_string('2w6')
+        assert type(w) is WildDice
+        assert w.amount == 2 and w.sides == 6
+
+        u = Dice.from_string('2u6')
+        assert type(u) is FudgeDice
+        assert u.amount == 2 and u.sides == 6
+
+    def test_dice_format(self):
+        amount, sides = 6, 6
+        for sep, cls in elements.DICE_MAP.items():
+            d = cls(amount, sides)
+            assert str(d) == '%i%s%i' % (amount, cls.SEPERATOR, sides)
+            assert repr(d) == '%s(%i, %i)' % (cls.__name__, amount, sides)
 
     def test_roll(self):
         amount, sides = 6, 6
@@ -56,6 +74,23 @@ class TestElements(object):
         rr = WildRoll.roll(amount, 1, sides)
         assert 0 <= sum(rr)
 
+        assert WildRoll.roll(0, 1, sides) == []
+
+    def test_wild_success(self):
+        while True:
+            if len(WildRoll.roll(1, 1, 2)) > 1:
+                break
+
+    def test_wild_fail(self):
+        while True:
+            if WildRoll.roll(1, 1, 2) == [0]:
+                break
+
+    def test_wild_critfail(self):
+        while True:
+            if WildRoll.roll(3, 1, 2) == [0, 0, 0]:
+                break
+
 
 class TestErrors(object):
     exc_types = (ParseException, ParseFatalException)
@@ -70,7 +105,15 @@ class TestEvaluate(object):
         """Test that evaluation returns the same result on successive runs"""
         roll('6d(6d6)t')
         ast = Total(Dice(6, Dice(6, 6)))
+        evals = [ast.evaluate_cached() for i in range(100)]
+        assert len(set(evals)) == 1
         assert ast.evaluate_cached() is ast.evaluate_cached()
+
+    def test_nocache(self):
+        """Test that evaluation returns different result on successive runs"""
+        ast = Total(Dice(6, Dice(6, 6)))
+        evals = [ast.evaluate() for i in range(100)]
+        assert len(set(evals)) > 1
 
     def test_multiargs(self):
         """Test that binary operators function properly when repeated"""
@@ -78,3 +121,26 @@ class TestEvaluate(object):
         assert roll('1d1-1d1-1d1') == -1
         assert roll('1d1*1d1*1d1') == 1
         assert roll('1d1/1d1/1d1') == 1
+
+
+class TestRegisterDice(object):
+    def test_reregister(self):
+        class FooDice(RandomElement):
+            SEPERATOR = 'd'
+
+        with raises(RuntimeError):
+            elements.register_dice(FooDice)
+
+    def test_noseperator(self):
+        class BarDice(RandomElement):
+            pass
+
+        with raises(TypeError):
+            elements.register_dice(BarDice)
+
+    def test_not_randomelement(self):
+        class BazDice(Element):
+            pass
+
+        with raises(TypeError):
+            elements.register_dice(BazDice)

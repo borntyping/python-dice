@@ -18,3 +18,11 @@ def test_main(capsys):
 
 def test_main_verbose():
     main(['2d6', '--verbose'])
+
+
+def test_main_min(capsys):
+    main(['2d6', '--min'])
+
+
+def test_main_max():
+    main(['2d6', '--max'])

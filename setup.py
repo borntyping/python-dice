@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name             = 'dice',
-    version          = '2.0.0',
+    version          = '2.1.0',
 
     author           = "Sam Clements",
     author_email     = "sam@borntyping.co.uk",
@@ -31,6 +31,9 @@ setup(
     classifiers     = [
         'Development Status :: 4 - Beta',
         'Environment :: Console',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Other Audience',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
@@ -41,8 +44,12 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Games/Entertainment',
+        'Topic :: Games/Entertainment :: Board Games',
+        'Topic :: Games/Entertainment :: Role-Playing',
         'Topic :: Games/Entertainment :: Multi-User Dungeons (MUD)',
-        'Topic :: Utilities',
+        'Topic :: Games/Entertainment :: Turn Based Strategy',
+        'Topic :: Utilities'
     ],
 )
