@@ -32,13 +32,13 @@ def main(argv=None):
         f_roll = dice.roll_max
 
     expr = ' '.join(args['<expression>'])
-    roll = f_roll(expr, raw=True)
+    roll, kwargs = f_roll(expr, raw=True, return_kwargs=True)
 
     if verbose:
-        print('Result: ', end=" ")
+        print('Result: ', end='')
 
-    print(str(roll.evaluate_cached()))
+    print(str(roll.evaluate_cached(**kwargs)))
 
     if verbose:
         print('Breakdown:')
-        print(dice.utilities.verbose_print(roll))
+        print(dice.utilities.verbose_print(roll, **kwargs))
