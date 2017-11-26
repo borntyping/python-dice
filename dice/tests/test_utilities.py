@@ -5,8 +5,9 @@ from py.test import raises
 import random
 import string
 
-from dice import roll, elements, utilities
+from dice import roll, utilities
 from dice.utilities import verbose_print
+from dice.elements import RandomElement, FudgeDice
 
 
 def test_enable_pyparsing_packrat_parsing():
@@ -67,24 +68,24 @@ class TestVerbosePrint(object):
 
 class TestDiceSwitch(object):
     def test_seperator_map(self):
-        for sep, cls in elements.DICE_MAP.items():
+        for sep, cls in RandomElement.DICE_MAP.items():
             d = utilities.dice_switch(6, 6, sep)
             assert type(d) is cls
 
     def test_percentile(self):
-        for sep, cls in elements.DICE_MAP.items():
+        for sep, cls in RandomElement.DICE_MAP.items():
             d = utilities.dice_switch(6, '%', sep)
             assert d.sides == 100
 
     def test_fudge(self):
-        assert type(utilities.dice_switch(1, 'f', 'd')) == elements.FudgeDice
-        assert type(utilities.dice_switch(1, 'f', 'u')) == elements.FudgeDice
+        assert type(utilities.dice_switch(1, 'f', 'd')) == FudgeDice
+        assert type(utilities.dice_switch(1, 'f', 'u')) == FudgeDice
 
-        with raises(ParseFatalException):
+        with raises(ValueError):
             utilities.dice_switch(1, 'f', 'w')
 
     def test_invalid(self):
-        unused = set(string.ascii_lowercase) - set(elements.DICE_MAP)
+        unused = set(string.ascii_lowercase) - set(RandomElement.DICE_MAP)
 
         bad_params = [
             (1, 0, 'd'),
@@ -96,7 +97,7 @@ class TestDiceSwitch(object):
             bad_params.append((1, 6, unused_char))
 
         for params in bad_params:
-            with raises(ParseFatalException):
+            with raises(ValueError):
                 utilities.dice_switch(*params)
 
 

@@ -8,16 +8,15 @@ module for more information.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from pyparsing import (CaselessLiteral, Forward, Literal, OneOrMore,
+from pyparsing import (CaselessLiteral, Forward, Literal, OneOrMore, Or,
                        StringStart, StringEnd, Suppress, Word, nums, opAssoc)
 
-from dice.elements import (Integer, FudgeDice, Successes, Mul, Div, Sub, Add,
+from dice.elements import (Integer, Successes, Mul, Div, Sub, Add, Identity,
                            AddEvenSubOdd, Total, Sort, Lowest, Middle, Highest,
                            Array, Extend, Explode, Reroll, ForceReroll, Negate,
-                           WildDice, SuccessFail, Identity, ArrayAdd, ArraySub)
+                           SuccessFail, ArrayAdd, ArraySub, RandomElement)
 
-from dice.utilities import (patch_pyparsing, dice_select_unary,
-                            dice_select_binary)
+from dice.utilities import patch_pyparsing, wrap_string
 
 patch_pyparsing()
 
@@ -67,8 +66,9 @@ def operatorPrecedence(base, operators):
             new_this = (this | extra) if extra else this
             if arity == 1:
                 operator_expression = expr + new_this
-            elif arity == 2:
-                operator_expression = last + OneOrMore(new_this)
+            # Currently no operator uses this, so marking it nocover for now
+            elif arity == 2:                                      # nocover
+                operator_expression = last + OneOrMore(new_this)  # nocover
 
         # Set the parse action for the operator
         if action is not None:
@@ -87,52 +87,49 @@ integer = Word(nums)
 integer.setParseAction(Integer.parse)
 integer.setName("integer")
 
-dice_element = CaselessLiteral('d').suppress()
-special = Literal('%') | CaselessLiteral('f')
+dice_seperators = RandomElement.DICE_MAP.keys()
+dice_element = Or(wrap_string(CaselessLiteral, x, suppress=False)
+                  for x in dice_seperators)
+special = wrap_string(Literal, '%', suppress=False) | \
+          wrap_string(CaselessLiteral, 'f', suppress=False)
 
 # An expression in dice notation
 expression = StringStart() + operatorPrecedence(integer, [
-    (dice_element, 2, opAssoc.LEFT, dice_select_binary, special),
-    (dice_element, 1, opAssoc.RIGHT, dice_select_unary, special),
+    (dice_element, 2, opAssoc.LEFT, RandomElement.parse, special),
+    (dice_element, 1, opAssoc.RIGHT, RandomElement.parse_unary, special),
 
-    (CaselessLiteral('u').suppress(), 2, opAssoc.LEFT, FudgeDice.parse),
-    (CaselessLiteral('u').suppress(), 1, opAssoc.RIGHT, FudgeDice.parse_unary),
+    (wrap_string(CaselessLiteral, 'x'), 2, opAssoc.LEFT, Explode.parse),
+    (wrap_string(CaselessLiteral, 'x'), 1, opAssoc.LEFT, Explode.parse),
+    (wrap_string(CaselessLiteral, 'rr'), 2, opAssoc.LEFT, ForceReroll.parse),
+    (wrap_string(CaselessLiteral, 'rr'), 1, opAssoc.LEFT, ForceReroll.parse),
+    (wrap_string(CaselessLiteral, 'r'), 2, opAssoc.LEFT, Reroll.parse),
+    (wrap_string(CaselessLiteral, 'r'), 1, opAssoc.LEFT, Reroll.parse),
 
-    (CaselessLiteral('w').suppress(), 2, opAssoc.LEFT, WildDice.parse),
-    (CaselessLiteral('w').suppress(), 1, opAssoc.RIGHT, WildDice.parse_unary),
+    (wrap_string(Word, '^hH', exact=1), 2, opAssoc.LEFT, Highest.parse),
+    (wrap_string(Word, '^hH', exact=1), 1, opAssoc.LEFT, Highest.parse),
+    (wrap_string(Word, 'vlL', exact=1), 2, opAssoc.LEFT, Lowest.parse),
+    (wrap_string(Word, 'vlL', exact=1), 1, opAssoc.LEFT, Lowest.parse),
+    (wrap_string(Word, 'oOmM', exact=1), 2, opAssoc.LEFT, Middle.parse),
+    (wrap_string(Word, 'oOmM', exact=1), 1, opAssoc.LEFT, Middle.parse),
+    (wrap_string(CaselessLiteral, 'e'), 2, opAssoc.LEFT, Successes.parse),
+    (wrap_string(CaselessLiteral, 'f'), 2, opAssoc.LEFT, SuccessFail.parse),
 
-    (CaselessLiteral('x').suppress(), 2, opAssoc.LEFT, Explode.parse),
-    (CaselessLiteral('x').suppress(), 1, opAssoc.LEFT, Explode.parse),
-    (CaselessLiteral('rr').suppress(), 2, opAssoc.LEFT, ForceReroll.parse),
-    (CaselessLiteral('rr').suppress(), 1, opAssoc.LEFT, ForceReroll.parse),
-    (CaselessLiteral('r').suppress(), 2, opAssoc.LEFT, Reroll.parse),
-    (CaselessLiteral('r').suppress(), 1, opAssoc.LEFT, Reroll.parse),
+    (wrap_string(CaselessLiteral, 't'), 1, opAssoc.LEFT, Total.parse),
+    (wrap_string(CaselessLiteral, 's'), 1, opAssoc.LEFT, Sort.parse),
 
-    (Word('^hH', exact=1).suppress(), 2, opAssoc.LEFT, Highest.parse),
-    (Word('^hH', exact=1).suppress(), 1, opAssoc.LEFT, Highest.parse),
-    (Word('vlL', exact=1).suppress(), 2, opAssoc.LEFT, Lowest.parse),
-    (Word('vlL', exact=1).suppress(), 1, opAssoc.LEFT, Lowest.parse),
-    (Word('oOmM', exact=1).suppress(), 2, opAssoc.LEFT, Middle.parse),
-    (Word('oOmM', exact=1).suppress(), 1, opAssoc.LEFT, Middle.parse),
-    (CaselessLiteral('e').suppress(), 2, opAssoc.LEFT, Successes.parse),
-    (CaselessLiteral('f').suppress(), 2, opAssoc.LEFT, SuccessFail.parse),
+    (wrap_string(Literal, '+-'), 1, opAssoc.RIGHT, AddEvenSubOdd.parse),
+    (wrap_string(Literal, '+'), 1, opAssoc.RIGHT, Identity.parse),
+    (wrap_string(Literal, '-'), 1, opAssoc.RIGHT, Negate.parse),
 
-    (Literal('+-').suppress(), 1, opAssoc.RIGHT, AddEvenSubOdd.parse),
-    (Literal('+').suppress(), 1, opAssoc.RIGHT, Identity.parse),
-    (Literal('-').suppress(), 1, opAssoc.RIGHT, Negate.parse),
+    (wrap_string(Literal, '.+'), 2, opAssoc.LEFT, ArrayAdd.parse),
+    (wrap_string(Literal, '.-'), 2, opAssoc.LEFT, ArraySub.parse),
 
-    (CaselessLiteral('t').suppress(), 1, opAssoc.LEFT, Total.parse),
-    (CaselessLiteral('s').suppress(), 1, opAssoc.LEFT, Sort.parse),
+    (wrap_string(Literal, '/'), 2, opAssoc.LEFT, Div.parse),
+    (wrap_string(Literal, '*'), 2, opAssoc.LEFT, Mul.parse),
+    (wrap_string(Literal, '-'), 2, opAssoc.LEFT, Sub.parse),
+    (wrap_string(Literal, '+'), 2, opAssoc.LEFT, Add.parse),
 
-    (Literal('.+').suppress(), 2, opAssoc.LEFT, ArrayAdd.parse),
-    (Literal('.-').suppress(), 2, opAssoc.LEFT, ArraySub.parse),
-
-    (Literal('/').suppress(), 2, opAssoc.LEFT, Div.parse),
-    (Literal('*').suppress(), 2, opAssoc.LEFT, Mul.parse),
-    (Literal('-').suppress(), 2, opAssoc.LEFT, Sub.parse),
-    (Literal('+').suppress(), 2, opAssoc.LEFT, Add.parse),
-
-    (Literal(',').suppress(), 2, opAssoc.LEFT, Array.parse),
-    (Literal('|').suppress(), 2, opAssoc.LEFT, Extend.parse),
+    (wrap_string(Literal, ','), 2, opAssoc.LEFT, Array.parse),
+    (wrap_string(Literal, '|'), 2, opAssoc.LEFT, Extend.parse),
 ]) + StringEnd()
 expression.setName("expression")

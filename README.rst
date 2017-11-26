@@ -5,7 +5,7 @@ dice
 .. image:: https://pypip.in/v/dice/badge.png
     :target: https://pypi.python.org/pypi/dice
     :alt: Latest PyPI version
-        
+
 .. image:: https://travis-ci.org/borntyping/python-dice.png
     :target: https://travis-ci.org/borntyping/python-dice
     :alt: Travis-CI build status
@@ -80,12 +80,6 @@ and ``rr`` operators. The single ``r`` variety allows the new roll to be below
 the threshold, whereas the double variety's roll *changes* the roll range to
 have a minimum of the threshold. The threshold defaults to the minimum roll.
 
-The highest, middle or lowest rolls or list entries can be selected with
-(``^`` or ``h``), (``m`` or ``o``), or (``v`` or ``l``) respectively.
-``6d6^3`` will keep the highest 3 rolls, whereas ``6d6v3`` will select
-the lowest 3 rolls. If a number isn't specified, it defaults to keeping all
-but one for highest and lowest, and all but two for the middle.
-
 There are two operators for taking a set of rolls or numbers and counting the
 number of elements at or above a certain threshold, or "successes". Both
 require a right-hand operand for the threshold. The first, ``e``, only counts
@@ -94,8 +88,17 @@ a roll is the minimum possible value for the die element, or 1 for lists.
 
 The ``+-`` operator is a special prefix for sets of rolls and lists. It
 negates odd roles within a list. Example: ``[1, 2, 3]`` -> ``[-1, 2, -3]``.
-There is also the negate (``-``) operator, which works on either single
+There is also a negate (``-``) operator, which works on either single
 elements, sets or rolls, or lists. There is also an identity ``+`` operator.
+
+The highest, middle or lowest rolls or list entries can be selected with
+(``^`` or ``h``), (``m`` or ``o``), or (``v`` or ``l``) respectively.
+``6d6^3`` will keep the highest 3 rolls, whereas ``6d6v3`` will select
+the lowest 3 rolls. If a number isn't specified, it defaults to keeping all
+but one for highest and lowest, and all but two for the middle. If a negative
+value is given as the operand for any of these operators, this operation will
+drop that many elements from the result. For example, ``6d6^-2`` will drop the
+two lowest values from the set, leaving the 4 highest. Zero has no effect.
 
 A list or set of rolls can be turned into an integer with the total (``t``)
 operator. ``6d1t`` will return ``6`` instead of ``[1, 1, 1, 1, 1, 1]``.
@@ -139,6 +142,19 @@ If ``element.result`` has not yet been populated, the function calls
 ``evaluate_cached()`` first. Keep this in mind if you want to print the result
 of an evaluation with custom arguments. ``verbose_print()`` returns a ``str``.
 
+Most evaluation errors will raise ``DiceError`` or ``DiceFatalError``, both of
+which are subclasses of ``DiceBaseError``. These exceptions have a method
+named ``pretty_print``, which will output a string indicating where the error
+happened::
+
+    >>> try:
+    ...   dice.roll('1/0')
+    ... except dice.DiceBaseException as e:
+    ...   print(e.pretty_print())
+    ...
+    1/0
+      ^ Division by zero
+    >>>
 
 Licence
 =======

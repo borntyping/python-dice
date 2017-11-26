@@ -26,3 +26,18 @@ def test_main_min(capsys):
 
 def test_main_max():
     main(['2d6', '--max'])
+
+
+def test_main_error():
+    try:
+        main(['d0'])
+    except SystemExit:
+        pass
+
+
+def test_main_error2():
+    "Test placing the error on the left"
+    try:
+        main(['000000000000000000000000000000000000000001d6, d0'])
+    except SystemExit:
+        pass

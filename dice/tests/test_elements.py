@@ -1,12 +1,10 @@
 from __future__ import absolute_import
 
-from pyparsing import ParseException, ParseFatalException
+from dice.exceptions import DiceFatalException
 from py.test import raises
 
 from dice.elements import (Integer, Roll, WildRoll, Dice, FudgeDice, Total,
-                           MAX_ROLL_DICE, TooManyDice, Element, RandomElement,
-                           WildDice)
-from dice import elements
+                           MAX_ROLL_DICE, Element, RandomElement, WildDice)
 from dice import roll, roll_min, roll_max
 
 
@@ -37,7 +35,7 @@ class TestElements(object):
 
     def test_dice_format(self):
         amount, sides = 6, 6
-        for sep, cls in elements.DICE_MAP.items():
+        for sep, cls in RandomElement.DICE_MAP.items():
             d = cls(amount, sides)
             assert str(d) == '%i%s%i' % (amount, cls.SEPERATOR, sides)
             assert repr(d) == '%s(%i, %i)' % (cls.__name__, amount, sides)
@@ -45,8 +43,13 @@ class TestElements(object):
     def test_roll(self):
         amount, sides = 6, 6
         assert len(Roll.roll(amount, 1, sides)) == amount
+
         rr = Roll.roll(amount, 1, sides)
         assert (1 * sides) <= sum(rr) <= (amount * sides)
+
+        rr = roll('%id%i' % (amount, sides))
+        rmin, rmax = rr.random_element.min_value, rr.random_element.max_value
+        assert rmin <= rr.do_roll_single() <= rmax
 
     def test_list(self):
         assert roll('1, 2, 3') == [1, 2, 3]
@@ -95,11 +98,20 @@ class TestElements(object):
 
 
 class TestErrors(object):
-    exc_types = (ParseException, ParseFatalException)
-
     def test_toomanydice(self):
-        with raises(TooManyDice):
+        with raises(DiceFatalException):
             roll('%id6' % (MAX_ROLL_DICE + 1))
+
+    def test_roll_error(self):
+        with raises(ValueError):
+            Roll.roll(-1, 1, 6)
+
+        with raises(ValueError):
+            Roll.roll_single(4, 3)
+
+        with raises(DiceFatalException):
+            rolled = roll('6d6')
+            rolled.do_roll_single(4, 3)
 
 
 class TestEvaluate(object):
@@ -131,18 +143,18 @@ class TestRegisterDice(object):
             SEPERATOR = 'd'
 
         with raises(RuntimeError):
-            elements.register_dice(FooDice)
+            RandomElement.register_dice(FooDice)
 
     def test_noseperator(self):
         class BarDice(RandomElement):
             pass
 
         with raises(TypeError):
-            elements.register_dice(BarDice)
+            RandomElement.register_dice(BarDice)
 
     def test_not_randomelement(self):
         class BazDice(Element):
             pass
 
         with raises(TypeError):
-            elements.register_dice(BazDice)
+            RandomElement.register_dice(BazDice)

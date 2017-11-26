@@ -15,6 +15,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 import docopt
 
 import dice
+from dice.exceptions import DiceBaseException
 
 __version__ = "dice v{0} by {1}".format(dice.__version__, dice.__author__)
 
@@ -32,13 +33,19 @@ def main(argv=None):
         f_roll = dice.roll_max
 
     expr = ' '.join(args['<expression>'])
-    roll, kwargs = f_roll(expr, raw=True, return_kwargs=True)
 
-    if verbose:
-        print('Result: ', end='')
+    try:
+        roll, kwargs = f_roll(expr, raw=True, return_kwargs=True)
 
-    print(str(roll.evaluate_cached(**kwargs)))
+        if verbose:
+            print('Result: ', end='')
 
-    if verbose:
-        print('Breakdown:')
-        print(dice.utilities.verbose_print(roll, **kwargs))
+        print(str(roll.evaluate_cached(**kwargs)))
+
+        if verbose:
+            print('Breakdown:')
+            print(dice.utilities.verbose_print(roll, **kwargs))
+    except DiceBaseException as e:
+        print('Whoops! Something went wrong:')
+        print(e.pretty_print())
+        exit(1)
