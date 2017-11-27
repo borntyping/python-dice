@@ -64,6 +64,7 @@ A wild dice (``[N]wS``) roll is special. The last roll in this set is called the
 in the set is set to the maximum value. If its roll is the minimum, then
 both it and the highest roll in the set aer set to zero. Then another die is
 rolled. If this roll is the minimum value again, then ALL die are set to zero.
+If a single-sided wild die is rolled, the roll behaves like a normal one.
 
 If N is not specified, it is assumed you want to roll a single die.
 ``d6`` is equivalent to ``1d6``.

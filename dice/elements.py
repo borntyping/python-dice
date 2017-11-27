@@ -168,6 +168,9 @@ class WildRoll(Roll):
 
         rolls = [random.randint(min_value, max_value) for i in range(amount)]
 
+        if min_value == max_value:
+            return rolls  # Continue as if dice were normal instead of erroring
+
         while rolls[-1] == max_value:
             rolls.append(random.randint(min_value, max_value))
 

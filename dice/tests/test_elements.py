@@ -76,6 +76,8 @@ class TestElements(object):
 
         assert WildRoll.roll(0, 1, sides) == []
 
+        assert WildRoll.roll(1, 1, 1) == [1]
+
     def test_wild_success(self):
         while True:
             if len(WildRoll.roll(1, 1, 2)) > 1:
