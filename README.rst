@@ -2,11 +2,11 @@
 dice
 ====
 
-.. image:: https://pypip.in/v/dice/badge.png
+.. image:: https://img.shields.io/pypi/v/dice.svg
     :target: https://pypi.python.org/pypi/dice
     :alt: Latest PyPI version
 
-.. image:: https://travis-ci.org/borntyping/python-dice.png
+.. image:: https://img.shields.io/travis/borntyping/python-dice.svg
     :target: https://travis-ci.org/borntyping/python-dice
     :alt: Travis-CI build status
 
