@@ -80,17 +80,6 @@ and ``rr`` operators. The single ``r`` variety allows the new roll to be below
 the threshold, whereas the double variety's roll *changes* the roll range to
 have a minimum of the threshold. The threshold defaults to the minimum roll.
 
-There are two operators for taking a set of rolls or numbers and counting the
-number of elements at or above a certain threshold, or "successes". Both
-require a right-hand operand for the threshold. The first, ``e``, only counts
-successes. The second, ``f``, counts successes minus failures, which are when
-a roll is the minimum possible value for the die element, or 1 for lists.
-
-The ``+-`` operator is a special prefix for sets of rolls and lists. It
-negates odd roles within a list. Example: ``[1, 2, 3]`` -> ``[-1, 2, -3]``.
-There is also a negate (``-``) operator, which works on either single
-elements, sets or rolls, or lists. There is also an identity ``+`` operator.
-
 The highest, middle or lowest rolls or list entries can be selected with
 (``^`` or ``h``), (``m`` or ``o``), or (``v`` or ``l``) respectively.
 ``6d6^3`` will keep the highest 3 rolls, whereas ``6d6v3`` will select
@@ -100,6 +89,17 @@ value is given as the operand for any of these operators, this operation will
 drop that many elements from the result. For example, ``6d6^-2`` will drop the
 two lowest values from the set, leaving the 4 highest. Zero has no effect.
 
+A variant of the explode operator is the ``a`` ("again") operator. Instead of
+re-rolling values equal to or greater than the threshold (or max value), this
+operator doubles values *equal* to the provided threshold (or max value). When
+no right-side operand is specified, the left side must be a dice expression.
+
+There are two operators for taking a set of rolls or numbers and counting the
+number of elements at or above a certain threshold, or "successes". Both
+require a right-hand operand for the threshold. The first, ``e``, only counts
+successes. The second, ``f``, counts successes minus failures, which are when
+a roll is the minimum possible value for the die element, or 1 for lists.
+
 A list or set of rolls can be turned into an integer with the total (``t``)
 operator. ``6d1t`` will return ``6`` instead of ``[1, 1, 1, 1, 1, 1]``.
 Applying integer operations to a list of rolls will total them automatically.
@@ -107,6 +107,11 @@ Applying integer operations to a list of rolls will total them automatically.
 A set of dice rolls can be sorted with the sort (``s``) operator. ``4d6s``
 will not change the return value, but the dice will be sorted from lowest to
 highest.
+
+The ``+-`` operator is a special prefix for sets of rolls and lists. It
+negates odd roles within a list. Example: ``[1, 2, 3]`` -> ``[-1, 2, -3]``.
+There is also a negate (``-``) operator, which works on either single
+elements, sets or rolls, or lists. There is also an identity ``+`` operator.
 
 Values can be added or subtracted from each element of a list or set of rolls
 with the pointwise add (``.+``) and subtract (``.-``) operators. For example:

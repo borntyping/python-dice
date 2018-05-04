@@ -14,7 +14,8 @@ from pyparsing import (CaselessLiteral, Forward, Literal, OneOrMore, Or,
 from dice.elements import (Integer, Successes, Mul, Div, Sub, Add, Identity,
                            AddEvenSubOdd, Total, Sort, Lowest, Middle, Highest,
                            Array, Extend, Explode, Reroll, ForceReroll, Negate,
-                           SuccessFail, ArrayAdd, ArraySub, RandomElement)
+                           SuccessFail, ArrayAdd, ArraySub, RandomElement,
+                           Again)
 
 from dice.utilities import patch_pyparsing, wrap_string
 
@@ -111,6 +112,8 @@ expression = StringStart() + operatorPrecedence(integer, [
     (wrap_string(Word, 'vlL', exact=1), 1, opAssoc.LEFT, Lowest.parse),
     (wrap_string(Word, 'oOmM', exact=1), 2, opAssoc.LEFT, Middle.parse),
     (wrap_string(Word, 'oOmM', exact=1), 1, opAssoc.LEFT, Middle.parse),
+    (wrap_string(CaselessLiteral, 'a'), 2, opAssoc.LEFT, Again.parse),
+    (wrap_string(CaselessLiteral, 'a'), 1, opAssoc.LEFT, Again.parse),
     (wrap_string(CaselessLiteral, 'e'), 2, opAssoc.LEFT, Successes.parse),
     (wrap_string(CaselessLiteral, 'f'), 2, opAssoc.LEFT, SuccessFail.parse),
 

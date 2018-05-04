@@ -88,6 +88,9 @@ class IntegerList(list, Element):
     def copy(self):
         return type(self)(self)
 
+    def clear(self):
+        self[:] = []
+
     def __int__(self):
         ret = sum(self)
         self.sum = ret
@@ -480,6 +483,29 @@ class SuccessFail(RHSIntegerOperator):
                 result -= 1
 
         return result
+
+
+class Again(RHSIntegerOperator):
+    def function(self, lhs, rhs=None):
+
+        if not isinstance(lhs, IntegerList):
+            lhs = IntegerList([lhs])
+
+        if rhs is None:
+            if not isinstance(lhs, Roll):
+                raise self.fatal('%s is not a random element' % lhs)
+
+            rhs = lhs.random_element.max_value
+
+        ret = lhs.copy()
+        ret.clear()
+
+        for elem in lhs:
+            ret.append(elem)
+            if elem == rhs:
+                ret.append(elem)
+
+        return ret
 
 
 class Sort(Operator):

@@ -206,6 +206,22 @@ class TestDiceOperators(object):
         r = roll_max('2d6r6')
         assert r == [6, 6]
 
+    def test_again_roll(self):
+        while True:
+            r = roll('6d6a')
+            if 6 in r:
+                break
+
+        num_6 = r.count(6)
+        assert 6 == len(r) - (num_6 // 2)
+
+    def test_again_scalar(self):
+        assert roll('6a6') == [6, 6]
+
+    def test_again_vector(self):
+        assert roll('(1,2,3)a2') == [1, 2, 2, 3]
+        assert roll("(1|1|1)a1") == [1, 1, 1, 1, 1, 1]
+
 
 class TestErrors(object):
     exc_types = (DiceException, DiceFatalException)
@@ -242,6 +258,10 @@ class TestErrors(object):
     def test_div_zero(self):
         self.run_test('1/0')
         self.run_test('1/(0*1)')
+
+    def test_again_fail(self):
+        self.run_test('(1,2,3)a')
+        self.run_test('1a')
 
 
 class TestOperatorPrecedence(object):
