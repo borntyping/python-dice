@@ -381,13 +381,18 @@ class Operator(Element):
         try:
             try:
                 self.rhs_index = -1
-                return self.function(*self.operands)
+                value = self.function(*self.operands)
             except TypeError:
                 value = self.operands[0]
+
                 for i, o in enumerate(self.operands[1:]):
                     self.rhs_index = i
                     value = self.function(value, o)
-                return value
+
+            if hasattr(self.__class__, 'output_cls'):
+                return self.evaluate_object(value, self.output_cls, **kwargs)
+            return value
+
         except ZeroDivisionError:
             zero = self.operands[1:].index(0) + 1
             zero_op = self.original_operands[zero]
@@ -420,18 +425,22 @@ class RHSIntegerOperator(IntegerOperator):
 
 
 class Div(IntegerOperator):
+    output_cls = Integer
     function = operator.floordiv
 
 
 class Mul(IntegerOperator):
+    output_cls = Integer
     function = operator.mul
 
 
 class Sub(IntegerOperator):
+    output_cls = Integer
     function = operator.sub
 
 
 class Add(IntegerOperator):
+    output_cls = Integer
     function = operator.add
 
 
@@ -440,6 +449,7 @@ class AddEvenSubOdd(Operator):
 
 
 class Total(Operator):
+    output_cls = Integer
     function = sum
 
 
