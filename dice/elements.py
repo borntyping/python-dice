@@ -444,6 +444,10 @@ class Add(IntegerOperator):
     function = operator.add
 
 
+class Modulo(IntegerOperator):
+    function = operator.mod
+
+
 class AddEvenSubOdd(Operator):
     function = addevensubodd
 

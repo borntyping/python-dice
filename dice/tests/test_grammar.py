@@ -75,6 +75,11 @@ class TestOperators(object):
     def test_div(self):
         assert roll('2 / 2') == 1
 
+    def test_mod(self):
+        assert roll('5 % 3') == 2
+        assert roll('1 % 3') == 1
+        assert 0 <= roll('d6 % 3') <= 2
+
     def test_identity(self):
         assert roll('+2') == 2
         assert roll('+(1, 2)') == [1, 2]

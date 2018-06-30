@@ -11,11 +11,11 @@ from __future__ import absolute_import, print_function, unicode_literals
 from pyparsing import (CaselessLiteral, Forward, Literal, OneOrMore, Or,
                        StringStart, StringEnd, Suppress, Word, nums, opAssoc)
 
-from dice.elements import (Integer, Successes, Mul, Div, Sub, Add, Identity,
-                           AddEvenSubOdd, Total, Sort, Lowest, Middle, Highest,
-                           Array, Extend, Explode, Reroll, ForceReroll, Negate,
-                           SuccessFail, ArrayAdd, ArraySub, RandomElement,
-                           Again)
+from dice.elements import (Integer, Successes, Mul, Div, Modulo, Sub, Add,
+                           Identity, AddEvenSubOdd, Total, Sort, Lowest,
+                           Middle, Highest, Array, Extend, Explode, Reroll,
+                           ForceReroll, Negate, SuccessFail, ArrayAdd,
+                           ArraySub, RandomElement, Again)
 
 from dice.utilities import patch_pyparsing, wrap_string
 
@@ -127,6 +127,7 @@ expression = StringStart() + operatorPrecedence(integer, [
     (wrap_string(Literal, '.+'), 2, opAssoc.LEFT, ArrayAdd.parse),
     (wrap_string(Literal, '.-'), 2, opAssoc.LEFT, ArraySub.parse),
 
+    (wrap_string(Literal, '%'), 2, opAssoc.LEFT, Modulo.parse),
     (wrap_string(Literal, '/'), 2, opAssoc.LEFT, Div.parse),
     (wrap_string(Literal, '*'), 2, opAssoc.LEFT, Mul.parse),
     (wrap_string(Literal, '-'), 2, opAssoc.LEFT, Sub.parse),

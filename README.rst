@@ -117,7 +117,7 @@ Values can be added or subtracted from each element of a list or set of rolls
 with the pointwise add (``.+``) and subtract (``.-``) operators. For example:
 ``4d1 .+ 3`` will return ``[4, 4, 4, 4]``.
 
-Basic integer operations are also available: ``16 / 8 * 4 - 2 + 1 -> 9``.
+Basic integer operations are also available: ``(16 / 8 * 4 - 2 + 1) % 4 -> 3``.
 
 
 Finally, there are two operators for building and extending lists. To build a
