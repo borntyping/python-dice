@@ -1,8 +1,9 @@
 from __future__ import absolute_import
 
-import itertools
 from dice import roll, roll_min, roll_max
 from dice.command import main
+import itertools
+from py.test import raises
 
 
 def test_roll():
@@ -26,6 +27,15 @@ def test_main_min(capsys):
 
 def test_main_max():
     main(['2d6', '--max'])
+
+
+def test_main_max_dice():
+    main(['2d6', '--max-dice', '2'])
+
+
+def test_main_max_dice_err():
+    with raises(SystemExit):
+        main(['2d6', '--max-dice', 'not_a_number'])
 
 
 def test_main_error():

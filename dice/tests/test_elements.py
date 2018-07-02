@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+from dice.constants import DiceExtreme
 from dice.exceptions import DiceFatalException
 from py.test import raises
 
@@ -101,6 +102,16 @@ class TestErrors(object):
     def test_toomanydice(self):
         with raises(DiceFatalException):
             roll('%id6' % (MAX_ROLL_DICE + 1))
+
+        with raises(DiceFatalException):
+            roll('7d6', max_dice=6)
+
+        with raises(ValueError):
+            Roll.roll(6, 1, 6, max_dice=4)
+
+    def test_negative_amount_extreme(self):
+        with raises(ValueError):
+            Roll.roll(-1, 1, 6, force_extreme=DiceExtreme.EXTREME_MAX)
 
     def test_roll_error(self):
         with raises(ValueError):

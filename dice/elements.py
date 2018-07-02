@@ -119,13 +119,12 @@ class Roll(IntegerList):
     def roll(cls, orig_amount, min_value, max_value, **kwargs):
         amount = cls.evaluate_object(orig_amount, Integer, **kwargs)
 
-        if amount > MAX_ROLL_DICE:
-            raise ValueError("Too many dice!")
+        max_dice = kwargs.get('max_dice', MAX_ROLL_DICE)
+
+        if amount > max_dice:
+            raise ValueError("Too many dice! (max is %i)" % max_dice)
         elif amount < 0:
-            msg = "Cannot roll less than zero dice!"
-            if not isinstance(orig_amount, int):
-                msg += ' (%s evaluated to %s)' % (orig_amount, amount)
-            raise ValueError(msg)
+            raise ValueError("Cannot roll less than zero dice!")
 
         return [cls.roll_single(min_value, max_value, **kwargs)
                 for i in range(amount)]
@@ -174,7 +173,24 @@ class Roll(IntegerList):
         max_value = self.evaluate_object(element.max_value, Integer, **kwargs)
 
         if rolled is None:
-            if self.force_extreme is DiceExtreme.EXTREME_MIN:
+            max_dice = kwargs.get('max_dice', MAX_ROLL_DICE)
+
+            if amount > max_dice:
+                msg = "Too many dice! (max is %i)" % max_dice
+                exc = self.random_element.fatal(msg)
+                exc.__cause__ = None
+                raise exc
+            elif amount < 0:
+                msg = "Cannot roll less than zero dice!"
+
+                if not isinstance(element.amount, int):
+                    msg += ' (%s evaluated to %s)' % (element.amount, amount)
+
+                exc = self.random_element.fatal(msg)
+                exc.__cause__ = None
+                raise exc
+
+            elif self.force_extreme is DiceExtreme.EXTREME_MIN:
                 rolled = [min_value] * amount
             elif self.force_extreme is DiceExtreme.EXTREME_MAX:
                 rolled = [max_value] * amount
