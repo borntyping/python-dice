@@ -10,6 +10,11 @@ dice
     :target: https://travis-ci.org/borntyping/python-dice
     :alt: Travis-CI build status
 
+.. image:: https://coveralls.io/repos/github/borntyping/python-dice/badge.svg
+    :target: https://coveralls.io/github/borntyping/python-dice
+    :alt: Coveralls coverage score
+
+
 A library and command line tool for parsing and evaluating dice notation.
 
 Usage

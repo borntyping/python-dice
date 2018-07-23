@@ -16,7 +16,7 @@ __all__ = ['roll', 'roll_min', 'roll_max', 'elements', 'grammar', 'utilities',
            'DiceFatalException', 'DiceExtreme']
 __author__ = ("Sam Clements <sam@borntyping.co.uk>, "
               "Caleb Johnson <me@calebj.io>")
-__version__ = '2.3.4'
+__version__ = '2.3.5'
 
 
 def roll(string, **kwargs):
