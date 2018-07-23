@@ -723,9 +723,11 @@ class Negate(Operator):
         return super(Negate, cls).__new__(cls)
 
     def function(self, operand):
-        operand = list(operand)
+        operand = IntegerList(operand)
+
         for i, x in enumerate(operand):
             operand[i] = -x
+
         return operand
 
 
@@ -733,9 +735,11 @@ class ArrayAdd(RHSIntegerOperator):
     def function(self, iterable, scalar):
         try:
             scalar = int(scalar)
-            iterable = list(iterable)
+            iterable = IntegerList(iterable)
+
             for i, x in enumerate(iterable):
                 iterable[i] = x + scalar
+
             return iterable
         except TypeError:
             raise self.fatal('Invalid operands for array add')
@@ -745,9 +749,11 @@ class ArraySub(RHSIntegerOperator):
     def function(self, iterable, scalar):
         try:
             scalar = int(scalar)
-            iterable = list(iterable)
+            iterable = IntegerList(iterable)
+
             for i, x in enumerate(iterable):
                 iterable[i] = x - scalar
+
             return iterable
         except TypeError:
             raise self.fatal('Invalid operands for array sub')
