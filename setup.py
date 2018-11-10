@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name             = 'dice',
-    version          = '2.3.5',
+    version          = '2.4.0',
 
     author           = "Sam Clements",
     author_email     = "sam@borntyping.co.uk",

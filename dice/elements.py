@@ -112,8 +112,8 @@ class Roll(IntegerList):
                              % (min_value, max_value, integer_min, integer_max
                                 )
                              )
-
-        return random.randint(integer_min, integer_max)
+        rnd_engine = kwargs.get('random', random)
+        return rnd_engine.randint(integer_min, integer_max)
 
     @classmethod
     def roll(cls, orig_amount, min_value, max_value, **kwargs):
@@ -225,18 +225,21 @@ class WildRoll(Roll):
         if amount == 0:
             return []
 
-        rolls = [random.randint(min_value, max_value) for i in range(amount)]
+        rnd_engine = kwargs.get('random', random)
+        rolls = [rnd_engine.randint(min_value, max_value)
+                 for i in range(amount)]
 
         if min_value == max_value:
             return rolls  # Continue as if dice were normal instead of erroring
 
         while rolls[-1] == max_value:
-            rolls.append(random.randint(min_value, max_value))
+            rolls.append(rnd_engine.randint(min_value, max_value))
 
         if len(rolls) == amount and rolls[-1] == min_value:  # failure
             rolls[-1] = 0
             rolls[rolls.index(max(rolls))] = 0
-            if random.randint(min_value, max_value) == min_value:
+
+            if rnd_engine.randint(min_value, max_value) == min_value:
                 return [0] * amount
 
         return rolls
@@ -369,12 +372,16 @@ class FudgeDice(Dice):
 
     def __repr__(self):
         p = '{0!r}, {1!r}'.format(self.amount, self.max_value)
+
         if self.min_value != -self.max_value:
             p += ', {0!r}'.format(self.min_value)
+
         return "{}({})".format(classname(self), p)
 
 
 class Operator(Element):
+    PASS_KWARGS = ()
+
     def __init__(self, *operands):
         self.operands = self.original_operands = operands
 
@@ -394,6 +401,12 @@ class Operator(Element):
 
         self.operands = self.preprocess_operands(*self.operands, **kwargs)
 
+        function_kw = {}
+
+        for k in self.PASS_KWARGS:
+            if k in kwargs:
+                function_kw[k] = kwargs[k]
+
         try:
             try:
                 self.rhs_index = -1
@@ -407,6 +420,7 @@ class Operator(Element):
 
             if hasattr(self.__class__, 'output_cls'):
                 return self.evaluate_object(value, self.output_cls, **kwargs)
+
             return value
 
         except ZeroDivisionError:
@@ -414,8 +428,10 @@ class Operator(Element):
             zero_op = self.original_operands[zero]
             offset = zero_op.location - self.location
             msg = "Division by zero"
+
             if not isinstance(zero_op, int):
                 msg += ' (%s evaluated to 0)' % zero_op
+
             raise self.fatal(msg, offset=offset)
 
     @property
@@ -435,8 +451,10 @@ class RHSIntegerOperator(IntegerOperator):
     "Like IntegerOperator, but doesn't transform the left operator to an int"
     def preprocess_operands(self, *operands, **kwargs):
         ret = [self.evaluate_object(operands[0], **kwargs)]
+
         for operand in operands[1:]:
             ret.append(self.evaluate_object(operand, Integer, **kwargs))
+
         return ret
 
 
@@ -479,11 +497,14 @@ class Successes(RHSIntegerOperator):
             iterable = (iterable,)
         elif isinstance(iterable, Roll):
             max_value = iterable.random_element.max_value
+
             if isinstance(max_value, RandomElement):
                 raise self.fatal("Nested dice in success not yet supported.",
                                  location=max_value.location)
+
             if thresh > iterable.random_element.max_value:
                 raise self.fatal("Success threshold higher than roll result.")
+
         return sum(x >= thresh for x in iterable)
 
 
@@ -494,9 +515,11 @@ class SuccessFail(RHSIntegerOperator):
             iterable = (iterable,)
         elif isinstance(iterable, Roll):
             max_value = iterable.random_element.max_value
+
             if isinstance(max_value, RandomElement):
                 raise self.fatal("Nested dice in success not yet supported.",
                                  location=max_value.location)
+
             if thresh > iterable.random_element.max_value:
                 raise self.fatal("Success threshold higher than maximum roll "
                                  "result.")
@@ -532,6 +555,7 @@ class Again(RHSIntegerOperator):
 
         for elem in lhs:
             ret.append(elem)
+
             if elem == rhs:
                 ret.append(elem)
 
@@ -542,6 +566,7 @@ class Sort(Operator):
     def function(self, iterable):
         if not isinstance(iterable, IntegerList):
             raise self.fatal("Cannot sort %s!" % iterable)
+
         iterable = iterable.copy()
         iterable.sort()
         return iterable
@@ -555,55 +580,68 @@ class Extend(Operator):
                 ret.extend(x)
             except TypeError:
                 ret.append(x)
+
         return ret
 
 
 class Array(Operator):
     def function(self, *args):
         ret = IntegerList()
+
         for x in args:
             try:
                 x = sum(x)
             except TypeError:
                 pass
             ret.append(x)
+
         return ret
 
 
 # TODO: stable removal instead of sort -> slice -> shuffle
 class Lowest(RHSIntegerOperator):
-    def function(self, iterable, n=None):
+    PASS_KWARGS = ('random',)
+
+    def function(self, iterable, n=None, **kwargs):
         if not isinstance(iterable, IntegerList):
             raise self.fatal("Can't take the lowest values of a scalar!")
+
         if n is None:
             n = len(iterable) - 1
 
         iterable = iterable.copy()
         iterable.sort()
         iterable[n:] = []
-        random.shuffle(iterable)
+        kwargs.get('random', random).shuffle(iterable)
         return iterable
 
 
 class Highest(RHSIntegerOperator):
-    def function(self, iterable, n=None):
+    PASS_KWARGS = ('random',)
+
+    def function(self, iterable, n=None, **kwargs):
         if not isinstance(iterable, IntegerList):
             raise self.fatal("Can't take the highest values of a scalar!")
+
         if n is None:
             n = len(iterable) - 1
 
         iterable = iterable.copy()
         iterable.sort()
         iterable[:-n] = []
-        random.shuffle(iterable)
+        kwargs.get('random', random).shuffle(iterable)
         return iterable
 
 
 class Middle(RHSIntegerOperator):
-    def function(self, iterable, n=None):
+    PASS_KWARGS = ('random',)
+
+    def function(self, iterable, n=None, **kwargs):
         if not isinstance(iterable, IntegerList):
             raise self.fatal("Can't take the middle values of a scalar!")
+
         num = len(iterable)
+
         if n is None:
             n = (num - 2) if num > 2 else 1
         elif n <= 0:
@@ -616,7 +654,7 @@ class Middle(RHSIntegerOperator):
         iterable = iterable.copy()
         iterable.sort()
         iterable[:lower], iterable[-upper:] = [], []
-        random.shuffle(iterable)
+        kwargs.get('random', random).shuffle(iterable)
         return iterable
 
 
@@ -651,6 +689,7 @@ class Explode(RHSIntegerOperator):
 
         while rerolled:
             explosions += 1
+
             if explosions >= MAX_EXPLOSIONS:
                 raise self.fatal('Too many explosions!')
 
@@ -720,6 +759,7 @@ class Negate(Operator):
         if isinstance(x, int):
             # Passthrough to prevent Negate() clutter
             return Integer(-x)
+
         return super(Negate, cls).__new__(cls)
 
     def function(self, operand):

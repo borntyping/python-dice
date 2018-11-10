@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from dice.constants import DiceExtreme
 from dice.exceptions import DiceFatalException
 from py.test import raises
+import random
 
 from dice.elements import (Integer, Roll, WildRoll, Dice, FudgeDice, Total,
                            MAX_ROLL_DICE, Element, RandomElement, WildDice)
@@ -169,3 +170,14 @@ class TestRegisterDice(object):
 
         with raises(TypeError):
             RandomElement.register_dice(BazDice)
+
+
+class TestSystemRandom(object):
+    sysrandom = random.SystemRandom()
+
+    # lowest, middle and highest operators use shuffle()
+    def test_sysrandom_op(self):
+        roll('6d6h1', random=self.sysrandom)
+
+    def test_sysrandom_roll(self):
+        roll('6d6', random=self.sysrandom)
