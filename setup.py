@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name             = 'dice',
-    version          = '2.4.0',
+    version          = '2.4.1',
 
     author           = "Sam Clements",
     author_email     = "sam@borntyping.co.uk",
@@ -18,7 +18,7 @@ setup(
     packages         = find_packages(),
     install_requires = [
         'docopt>=0.6.1',
-        'pyparsing>=2.0.1'
+        'pyparsing>=2.0.1,<2.4.0'
     ],
 
     entry_points     = {
@@ -42,6 +42,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Topic :: Games/Entertainment',
         'Topic :: Games/Entertainment :: Board Games',
         'Topic :: Games/Entertainment :: Role-Playing',
