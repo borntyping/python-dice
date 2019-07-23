@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name             = 'dice',
-    version          = '2.4.1',
+    version          = '2.4.2',
 
     author           = "Sam Clements",
     author_email     = "sam@borntyping.co.uk",
@@ -18,7 +18,7 @@ setup(
     packages         = find_packages(),
     install_requires = [
         'docopt>=0.6.1',
-        'pyparsing>=2.0.1,<2.4.0'
+        'pyparsing>=2.4.1'
     ],
 
     entry_points     = {
@@ -39,7 +39,6 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
