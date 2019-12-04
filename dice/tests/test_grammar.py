@@ -4,7 +4,7 @@ from pyparsing import Word, opAssoc
 from dice.elements import Integer, Roll, WildRoll, ExplodedRoll
 from dice.exceptions import DiceException, DiceFatalException
 from dice import roll, roll_min, roll_max, grammar
-from py.test import raises
+from pytest import raises
 
 
 class TestInteger(object):

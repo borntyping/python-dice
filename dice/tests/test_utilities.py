@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 from pyparsing import Literal, ParseFatalException
-from py.test import raises
+from pytest import raises
 import random
 import string
 

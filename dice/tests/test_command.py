@@ -2,18 +2,18 @@ from __future__ import absolute_import
 
 from dice import roll, roll_min, roll_max
 from dice.command import main
-import itertools
-from py.test import raises
+from itertools import product
+from pytest import raises
 
 
 def test_roll():
-    for single, raw in itertools.product((True, False), (True, False)):
+    for single, raw in product((True, False), (True, False)):
         assert roll("6d6", single=single, raw=raw)
         assert roll_min("6d6", single=single, raw=raw)
         assert roll_max("6d6", single=single, raw=raw)
 
 
-def test_main(capsys):
+def test_main():
     main(["2d6"])
 
 
@@ -21,7 +21,7 @@ def test_main_verbose():
     main(["2d6", "--verbose"])
 
 
-def test_main_min(capsys):
+def test_main_min():
     main(["2d6", "--min"])
 
 
@@ -39,15 +39,11 @@ def test_main_max_dice_err():
 
 
 def test_main_error():
-    try:
+    with raises(SystemExit):
         main(["d0"])
-    except SystemExit:
-        pass
 
 
 def test_main_error2():
-    "Test placing the error on the left"
-    try:
+    """Test placing the error on the left"""
+    with raises(SystemExit):
         main(["000000000000000000000000000000000000000001d6, d0"])
-    except SystemExit:
-        pass

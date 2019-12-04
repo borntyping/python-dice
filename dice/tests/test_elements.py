@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 from dice.constants import DiceExtreme
 from dice.exceptions import DiceFatalException
-from py.test import raises
+from pytest import raises
 import random
 
 from dice.elements import (
