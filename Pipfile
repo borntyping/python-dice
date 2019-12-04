@@ -8,6 +8,7 @@ pytest = "*"
 pytest-cov = "*"
 coverage = "*"
 black = "*"
+importlib-metadata = "*"
 
 [packages]
 docopt = "*"
