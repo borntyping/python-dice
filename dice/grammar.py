@@ -8,14 +8,47 @@ module for more information.
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from pyparsing import (CaselessLiteral, Forward, Literal, OneOrMore, Or,
-                       StringStart, StringEnd, Suppress, Word, nums, opAssoc)
+from pyparsing import (
+    CaselessLiteral,
+    Forward,
+    Literal,
+    OneOrMore,
+    Or,
+    StringStart,
+    StringEnd,
+    Suppress,
+    Word,
+    nums,
+    opAssoc,
+)
 
-from dice.elements import (Integer, Successes, Mul, Div, Modulo, Sub, Add,
-                           Identity, AddEvenSubOdd, Total, Sort, Lowest,
-                           Middle, Highest, Array, Extend, Explode, Reroll,
-                           ForceReroll, Negate, SuccessFail, ArrayAdd,
-                           ArraySub, RandomElement, Again)
+from dice.elements import (
+    Integer,
+    Successes,
+    Mul,
+    Div,
+    Modulo,
+    Sub,
+    Add,
+    Identity,
+    AddEvenSubOdd,
+    Total,
+    Sort,
+    Lowest,
+    Middle,
+    Highest,
+    Array,
+    Extend,
+    Explode,
+    Reroll,
+    ForceReroll,
+    Negate,
+    SuccessFail,
+    ArrayAdd,
+    ArraySub,
+    RandomElement,
+    Again,
+)
 
 from dice.utilities import patch_pyparsing, wrap_string
 
@@ -37,7 +70,7 @@ def operatorPrecedence(base, operators):
     expression = Forward()
 
     # The initial expression
-    last = base | Suppress('(') + expression + Suppress(')')
+    last = base | Suppress("(") + expression + Suppress(")")
 
     def parse_operator(expr, arity, association, action=None, extra=None):
         return expr, arity, association, action, extra
@@ -68,14 +101,14 @@ def operatorPrecedence(base, operators):
             if arity == 1:
                 operator_expression = expr + new_this
             # Currently no operator uses this, so marking it nocover for now
-            elif arity == 2:                                      # nocover
+            elif arity == 2:  # nocover
                 operator_expression = last + OneOrMore(new_this)  # nocover
 
         # Set the parse action for the operator
         if action is not None:
             operator_expression.setParseAction(action)
 
-        this <<= (operator_expression | last)
+        this <<= operator_expression | last
         last = this
 
     # Set the full expression and return it
@@ -88,52 +121,54 @@ integer = Word(nums)
 integer.setParseAction(Integer.parse)
 integer.setName("integer")
 
-dice_seperators = RandomElement.DICE_MAP.keys()
-dice_element = Or(wrap_string(CaselessLiteral, x, suppress=False)
-                  for x in dice_seperators)
-special = wrap_string(Literal, '%', suppress=False) | \
-          wrap_string(CaselessLiteral, 'f', suppress=False)
+dice_separators = RandomElement.DICE_MAP.keys()
+dice_element = Or(
+    wrap_string(CaselessLiteral, x, suppress=False) for x in dice_separators
+)
+special = wrap_string(Literal, "%", suppress=False) | wrap_string(
+    CaselessLiteral, "f", suppress=False
+)
 
 # An expression in dice notation
-expression = StringStart() + operatorPrecedence(integer, [
-    (dice_element, 2, opAssoc.LEFT, RandomElement.parse, special),
-    (dice_element, 1, opAssoc.RIGHT, RandomElement.parse_unary, special),
-
-    (wrap_string(CaselessLiteral, 'x'), 2, opAssoc.LEFT, Explode.parse),
-    (wrap_string(CaselessLiteral, 'x'), 1, opAssoc.LEFT, Explode.parse),
-    (wrap_string(CaselessLiteral, 'rr'), 2, opAssoc.LEFT, ForceReroll.parse),
-    (wrap_string(CaselessLiteral, 'rr'), 1, opAssoc.LEFT, ForceReroll.parse),
-    (wrap_string(CaselessLiteral, 'r'), 2, opAssoc.LEFT, Reroll.parse),
-    (wrap_string(CaselessLiteral, 'r'), 1, opAssoc.LEFT, Reroll.parse),
-
-    (wrap_string(Word, '^hH', exact=1), 2, opAssoc.LEFT, Highest.parse),
-    (wrap_string(Word, '^hH', exact=1), 1, opAssoc.LEFT, Highest.parse),
-    (wrap_string(Word, 'vlL', exact=1), 2, opAssoc.LEFT, Lowest.parse),
-    (wrap_string(Word, 'vlL', exact=1), 1, opAssoc.LEFT, Lowest.parse),
-    (wrap_string(Word, 'oOmM', exact=1), 2, opAssoc.LEFT, Middle.parse),
-    (wrap_string(Word, 'oOmM', exact=1), 1, opAssoc.LEFT, Middle.parse),
-    (wrap_string(CaselessLiteral, 'a'), 2, opAssoc.LEFT, Again.parse),
-    (wrap_string(CaselessLiteral, 'a'), 1, opAssoc.LEFT, Again.parse),
-    (wrap_string(CaselessLiteral, 'e'), 2, opAssoc.LEFT, Successes.parse),
-    (wrap_string(CaselessLiteral, 'f'), 2, opAssoc.LEFT, SuccessFail.parse),
-
-    (wrap_string(CaselessLiteral, 't'), 1, opAssoc.LEFT, Total.parse),
-    (wrap_string(CaselessLiteral, 's'), 1, opAssoc.LEFT, Sort.parse),
-
-    (wrap_string(Literal, '+-'), 1, opAssoc.RIGHT, AddEvenSubOdd.parse),
-    (wrap_string(Literal, '+'), 1, opAssoc.RIGHT, Identity.parse),
-    (wrap_string(Literal, '-'), 1, opAssoc.RIGHT, Negate.parse),
-
-    (wrap_string(Literal, '.+'), 2, opAssoc.LEFT, ArrayAdd.parse),
-    (wrap_string(Literal, '.-'), 2, opAssoc.LEFT, ArraySub.parse),
-
-    (wrap_string(Literal, '%'), 2, opAssoc.LEFT, Modulo.parse),
-    (wrap_string(Literal, '/'), 2, opAssoc.LEFT, Div.parse),
-    (wrap_string(Literal, '*'), 2, opAssoc.LEFT, Mul.parse),
-    (wrap_string(Literal, '-'), 2, opAssoc.LEFT, Sub.parse),
-    (wrap_string(Literal, '+'), 2, opAssoc.LEFT, Add.parse),
-
-    (wrap_string(Literal, ','), 2, opAssoc.LEFT, Array.parse),
-    (wrap_string(Literal, '|'), 2, opAssoc.LEFT, Extend.parse),
-]) + StringEnd()
+expression = (
+    StringStart()
+    + operatorPrecedence(
+        integer,
+        [
+            (dice_element, 2, opAssoc.LEFT, RandomElement.parse, special),
+            (dice_element, 1, opAssoc.RIGHT, RandomElement.parse_unary, special),
+            (wrap_string(CaselessLiteral, "x"), 2, opAssoc.LEFT, Explode.parse),
+            (wrap_string(CaselessLiteral, "x"), 1, opAssoc.LEFT, Explode.parse),
+            (wrap_string(CaselessLiteral, "rr"), 2, opAssoc.LEFT, ForceReroll.parse),
+            (wrap_string(CaselessLiteral, "rr"), 1, opAssoc.LEFT, ForceReroll.parse),
+            (wrap_string(CaselessLiteral, "r"), 2, opAssoc.LEFT, Reroll.parse),
+            (wrap_string(CaselessLiteral, "r"), 1, opAssoc.LEFT, Reroll.parse),
+            (wrap_string(Word, "^hH", exact=1), 2, opAssoc.LEFT, Highest.parse),
+            (wrap_string(Word, "^hH", exact=1), 1, opAssoc.LEFT, Highest.parse),
+            (wrap_string(Word, "vlL", exact=1), 2, opAssoc.LEFT, Lowest.parse),
+            (wrap_string(Word, "vlL", exact=1), 1, opAssoc.LEFT, Lowest.parse),
+            (wrap_string(Word, "oOmM", exact=1), 2, opAssoc.LEFT, Middle.parse),
+            (wrap_string(Word, "oOmM", exact=1), 1, opAssoc.LEFT, Middle.parse),
+            (wrap_string(CaselessLiteral, "a"), 2, opAssoc.LEFT, Again.parse),
+            (wrap_string(CaselessLiteral, "a"), 1, opAssoc.LEFT, Again.parse),
+            (wrap_string(CaselessLiteral, "e"), 2, opAssoc.LEFT, Successes.parse),
+            (wrap_string(CaselessLiteral, "f"), 2, opAssoc.LEFT, SuccessFail.parse),
+            (wrap_string(CaselessLiteral, "t"), 1, opAssoc.LEFT, Total.parse),
+            (wrap_string(CaselessLiteral, "s"), 1, opAssoc.LEFT, Sort.parse),
+            (wrap_string(Literal, "+-"), 1, opAssoc.RIGHT, AddEvenSubOdd.parse),
+            (wrap_string(Literal, "+"), 1, opAssoc.RIGHT, Identity.parse),
+            (wrap_string(Literal, "-"), 1, opAssoc.RIGHT, Negate.parse),
+            (wrap_string(Literal, ".+"), 2, opAssoc.LEFT, ArrayAdd.parse),
+            (wrap_string(Literal, ".-"), 2, opAssoc.LEFT, ArraySub.parse),
+            (wrap_string(Literal, "%"), 2, opAssoc.LEFT, Modulo.parse),
+            (wrap_string(Literal, "/"), 2, opAssoc.LEFT, Div.parse),
+            (wrap_string(Literal, "*"), 2, opAssoc.LEFT, Mul.parse),
+            (wrap_string(Literal, "-"), 2, opAssoc.LEFT, Sub.parse),
+            (wrap_string(Literal, "+"), 2, opAssoc.LEFT, Add.parse),
+            (wrap_string(Literal, ","), 2, opAssoc.LEFT, Array.parse),
+            (wrap_string(Literal, "|"), 2, opAssoc.LEFT, Extend.parse),
+        ],
+    )
+    + StringEnd()
+)
 expression.setName("expression")

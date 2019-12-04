@@ -8,15 +8,23 @@ import dice.elements
 import dice.grammar
 import dice.utilities
 from dice.constants import DiceExtreme
-from dice.exceptions import (DiceBaseException, DiceException,
-                             DiceFatalException)
+from dice.exceptions import DiceBaseException, DiceException, DiceFatalException
 
-__all__ = ['roll', 'roll_min', 'roll_max', 'elements', 'grammar', 'utilities',
-           'command', 'DiceBaseException', 'DiceException',
-           'DiceFatalException', 'DiceExtreme']
-__author__ = ("Sam Clements <sam@borntyping.co.uk>, "
-              "Caleb Johnson <me@calebj.io>")
-__version__ = '2.4.1'
+__all__ = [
+    "roll",
+    "roll_min",
+    "roll_max",
+    "elements",
+    "grammar",
+    "utilities",
+    "command",
+    "DiceBaseException",
+    "DiceException",
+    "DiceFatalException",
+    "DiceExtreme",
+]
+__author__ = "Sam Clements <sam@borntyping.co.uk>, " "Caleb Johnson <me@calebj.io>"
+__version__ = "2.4.1"
 
 
 def roll(string, **kwargs):
@@ -44,8 +52,7 @@ def _roll(string, single=True, raw=False, return_kwargs=False, **kwargs):
         elements = list(ast)
 
         if not raw:
-            elements = [element.evaluate_cached(**kwargs)
-                        for element in elements]
+            elements = [element.evaluate_cached(**kwargs) for element in elements]
 
         if single:
             elements = dice.utilities.single(elements)
