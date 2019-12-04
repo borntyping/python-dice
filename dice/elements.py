@@ -18,10 +18,10 @@ class Element(object):
         try:
             return cls(*tokens).set_parse_attributes(string, location, tokens)
         # The following only matters on python2 platforms, so is marked nocover
-        except ArithmeticError as e:                               # nocover
+        except ArithmeticError as e:  # nocover
             exc = DiceFatalException(string, location, e.args[0])  # nocover
-            exc.__cause__ = None                                   # nocover
-            raise exc                                              # nocover
+            exc.__cause__ = None  # nocover
+            raise exc  # nocover
 
     def set_parse_attributes(self, string, location, tokens):
         "Fluent API for setting parsed location"
@@ -30,8 +30,7 @@ class Element(object):
         self.tokens = tokens
         return self
 
-    def fatal(self, description, location=None, offset=0,
-              cls=DiceFatalException):
+    def fatal(self, description, location=None, offset=0, cls=DiceFatalException):
         if location is None:
             location = self.location
         return cls(self.string, location + offset, description)
@@ -53,7 +52,7 @@ class Element(object):
         if cls is not None and type(obj) != cls:
             obj = cls(obj)
 
-        for attr in ('string', 'location', 'tokens'):
+        for attr in ("string", "location", "tokens"):
             if hasattr(old_obj, attr):
                 setattr(obj, attr, getattr(old_obj, attr))
 
@@ -61,7 +60,7 @@ class Element(object):
 
     def evaluate_cached(self, **kwargs):
         """Wraps evaluate(), caching results"""
-        if not hasattr(self, 'result'):
+        if not hasattr(self, "result"):
             self.result = self.evaluate(cache=True, **kwargs)
 
         return self.result
@@ -69,20 +68,23 @@ class Element(object):
 
 class Integer(int, Element):
     """A wrapper around the int class"""
+
     pass
 
 
 class String(str, Element):
     """A wrapper around the str class"""
+
     pass
 
 
 class IntegerList(list, Element):
     "Augments the standard list with an __int__ operator"
+
     def __str__(self):
-        ret = '[%s]' % ', '.join(map(str, self))
+        ret = "[%s]" % ", ".join(map(str, self))
         if hasattr(self, "sum") and len(self) > 1:
-            ret += ' -> %i' % self
+            ret += " -> %i" % self
         return ret
 
     def copy(self):
@@ -106,28 +108,27 @@ class Roll(IntegerList):
         integer_max = cls.evaluate_object(max_value, Integer, **kwargs)
 
         if integer_min > integer_max:
-            raise ValueError('Roll must have a valid range (got %s - %s, '
-                             'which evaluated to %i - %i). Are you trying to '
-                             'use a fudge roll as the sides?'
-                             % (min_value, max_value, integer_min, integer_max
-                                )
-                             )
-        rnd_engine = kwargs.get('random', random)
+            raise ValueError(
+                "Roll must have a valid range (got %s - %s, "
+                "which evaluated to %i - %i). Are you trying to "
+                "use a fudge roll as the sides?"
+                % (min_value, max_value, integer_min, integer_max)
+            )
+        rnd_engine = kwargs.get("random", random)
         return rnd_engine.randint(integer_min, integer_max)
 
     @classmethod
     def roll(cls, orig_amount, min_value, max_value, **kwargs):
         amount = cls.evaluate_object(orig_amount, Integer, **kwargs)
 
-        max_dice = kwargs.get('max_dice', MAX_ROLL_DICE)
+        max_dice = kwargs.get("max_dice", MAX_ROLL_DICE)
 
         if amount > max_dice:
             raise ValueError("Too many dice! (max is %i)" % max_dice)
         elif amount < 0:
             raise ValueError("Cannot roll less than zero dice!")
 
-        return [cls.roll_single(min_value, max_value, **kwargs)
-                for i in range(amount)]
+        return [cls.roll_single(min_value, max_value, **kwargs) for i in range(amount)]
 
     def do_roll_single(self, min_value=None, max_value=None, **kwargs):
         element = self.random_element
@@ -166,14 +167,14 @@ class Roll(IntegerList):
 
     def __init__(self, element, rolled=None, **kwargs):
         self.random_element = element
-        self.force_extreme = kwargs.get('force_extreme')
+        self.force_extreme = kwargs.get("force_extreme")
 
         amount = self.evaluate_object(element.amount, Integer, **kwargs)
         min_value = self.evaluate_object(element.min_value, Integer, **kwargs)
         max_value = self.evaluate_object(element.max_value, Integer, **kwargs)
 
         if rolled is None:
-            max_dice = kwargs.get('max_dice', MAX_ROLL_DICE)
+            max_dice = kwargs.get("max_dice", MAX_ROLL_DICE)
 
             if amount > max_dice:
                 msg = "Too many dice! (max is %i)" % max_dice
@@ -184,7 +185,7 @@ class Roll(IntegerList):
                 msg = "Cannot roll less than zero dice!"
 
                 if not isinstance(element.amount, int):
-                    msg += ' (%s evaluated to %s)' % (element.amount, amount)
+                    msg += " (%s evaluated to %s)" % (element.amount, amount)
 
                 exc = self.random_element.fatal(msg)
                 exc.__cause__ = None
@@ -200,8 +201,9 @@ class Roll(IntegerList):
         super(Roll, self).__init__(rolled)
 
     def copy(self):
-        return type(self)(self.random_element, rolled=self,
-                          force_extreme=self.force_extreme)
+        return type(self)(
+            self.random_element, rolled=self, force_extreme=self.force_extreme
+        )
 
     # unused
     # def substitute(self, newcontents):
@@ -210,7 +212,8 @@ class Roll(IntegerList):
 
     def __repr__(self):
         return "{0}({1}, random_element={2!r})".format(
-            classname(self), str(self), self.random_element)
+            classname(self), str(self), self.random_element
+        )
 
 
 class WildRoll(Roll):
@@ -225,9 +228,8 @@ class WildRoll(Roll):
         if amount == 0:
             return []
 
-        rnd_engine = kwargs.get('random', random)
-        rolls = [rnd_engine.randint(min_value, max_value)
-                 for i in range(amount)]
+        rnd_engine = kwargs.get("random", random)
+        rolls = [rnd_engine.randint(min_value, max_value) for i in range(amount)]
 
         if min_value == max_value:
             return rolls  # Continue as if dice were normal instead of erroring
@@ -247,6 +249,7 @@ class WildRoll(Roll):
 
 class ExplodedRoll(Roll):
     "Represents an exploded roll"
+
     def __init__(self, original, rolled, **kwargs):
         super(ExplodedRoll, self).__init__(original, rolled=rolled, **kwargs)
 
@@ -260,12 +263,11 @@ class RandomElement(Element):
     @classmethod
     def register_dice(cls, new_cls):
         if not issubclass(new_cls, RandomElement):
-            raise TypeError('can only register subclasses of RandomElement')
+            raise TypeError("can only register subclasses of RandomElement")
         elif not new_cls.SEPERATOR:
-            raise TypeError('must specify seperator')
+            raise TypeError("must specify seperator")
         elif new_cls.SEPERATOR in cls.DICE_MAP:
-            raise RuntimeError('seperator %s already registered'
-                               % new_cls.SEPERATOR)
+            raise RuntimeError("seperator %s already registered" % new_cls.SEPERATOR)
         cls.DICE_MAP[new_cls.SEPERATOR] = new_cls
         return new_cls
 
@@ -276,8 +278,10 @@ class RandomElement(Element):
     @classmethod
     def parse(cls, string, location, tokens):
         if len(tokens) > 3:
-            msg = ('Cannot stack dice operators! Try disabiguating your '
-                   'expression with parentheses,')
+            msg = (
+                "Cannot stack dice operators! Try disabiguating your "
+                "expression with parentheses,"
+            )
             raise ParseFatalException(string, tokens[3].location, msg)
 
         amount, kind, dicetype = tokens
@@ -318,10 +322,12 @@ class RandomElement(Element):
         return new
 
     def __eq__(self, other):
-        return type(self) is type(other) and \
-               self.amoun == other.amount and \
-               self.min_value == other.min_value and \
-               self.max_value == other.max_value
+        return (
+            type(self) is type(other)
+            and self.amoun == other.amount
+            and self.min_value == other.min_value
+            and self.max_value == other.max_value
+        )
 
     def evaluate(self, **kwargs):
         return Roll(self, **kwargs)
@@ -331,7 +337,7 @@ class RandomElement(Element):
 class Dice(RandomElement):
     """A group of dice, all with the same number of sides"""
 
-    SEPERATOR = 'd'
+    SEPERATOR = "d"
 
     def __init__(self, amount, max_value, min_value=1):
         super(Dice, self).__init__(amount, min_value, max_value)
@@ -342,9 +348,9 @@ class Dice(RandomElement):
         return self.max_value
 
     def __repr__(self):
-        p = '{0!r}, {1!r}'.format(self.amount, self.max_value)
+        p = "{0!r}, {1!r}".format(self.amount, self.max_value)
         if self.min_value != 1:
-            p += ', {0!r}'.format(self.min_value)
+            p += ", {0!r}".format(self.min_value)
         return "{}({})".format(classname(self), p)
 
     def __str__(self):
@@ -355,7 +361,7 @@ class Dice(RandomElement):
 class WildDice(Dice):
     "A group of dice with the last being explodable or a failure mode on 1"
 
-    SEPERATOR = 'w'
+    SEPERATOR = "w"
 
     def evaluate(self, **kwargs):
         return WildRoll(self, **kwargs)
@@ -365,16 +371,16 @@ class WildDice(Dice):
 class FudgeDice(Dice):
     "A group of dice whose sides range from -x to x, including 0"
 
-    SEPERATOR = 'u'
+    SEPERATOR = "u"
 
     def __init__(self, amount, range):
         super(FudgeDice, self).__init__(amount, range, -range)
 
     def __repr__(self):
-        p = '{0!r}, {1!r}'.format(self.amount, self.max_value)
+        p = "{0!r}, {1!r}".format(self.amount, self.max_value)
 
         if self.min_value != -self.max_value:
-            p += ', {0!r}'.format(self.min_value)
+            p += ", {0!r}".format(self.min_value)
 
         return "{}({})".format(classname(self), p)
 
@@ -387,7 +393,8 @@ class Operator(Element):
 
     def __repr__(self):
         return "{0}({1})".format(
-            classname(self), ', '.join(map(str, self.original_operands)))
+            classname(self), ", ".join(map(str, self.original_operands))
+        )
 
     def preprocess_operands(self, *operands, **kwargs):
         def eval_wrapper(operand):
@@ -396,7 +403,7 @@ class Operator(Element):
         return [eval_wrapper(o) for o in operands]
 
     def evaluate(self, **kwargs):
-        if not kwargs.get('cache', False):
+        if not kwargs.get("cache", False):
             self.operands = self.original_operands
 
         self.operands = self.preprocess_operands(*self.operands, **kwargs)
@@ -418,7 +425,7 @@ class Operator(Element):
                     self.rhs_index = i
                     value = self.function(value, o)
 
-            if hasattr(self.__class__, 'output_cls'):
+            if hasattr(self.__class__, "output_cls"):
                 return self.evaluate_object(value, self.output_cls, **kwargs)
 
             return value
@@ -430,7 +437,7 @@ class Operator(Element):
             msg = "Division by zero"
 
             if not isinstance(zero_op, int):
-                msg += ' (%s evaluated to 0)' % zero_op
+                msg += " (%s evaluated to 0)" % zero_op
 
             raise self.fatal(msg, offset=offset)
 
@@ -449,6 +456,7 @@ class IntegerOperator(Operator):
 
 class RHSIntegerOperator(IntegerOperator):
     "Like IntegerOperator, but doesn't transform the left operator to an int"
+
     def preprocess_operands(self, *operands, **kwargs):
         ret = [self.evaluate_object(operands[0], **kwargs)]
 
@@ -499,8 +507,10 @@ class Successes(RHSIntegerOperator):
             max_value = iterable.random_element.max_value
 
             if isinstance(max_value, RandomElement):
-                raise self.fatal("Nested dice in success not yet supported.",
-                                 location=max_value.location)
+                raise self.fatal(
+                    "Nested dice in success not yet supported.",
+                    location=max_value.location,
+                )
 
             if thresh > iterable.random_element.max_value:
                 raise self.fatal("Success threshold higher than roll result.")
@@ -517,12 +527,15 @@ class SuccessFail(RHSIntegerOperator):
             max_value = iterable.random_element.max_value
 
             if isinstance(max_value, RandomElement):
-                raise self.fatal("Nested dice in success not yet supported.",
-                                 location=max_value.location)
+                raise self.fatal(
+                    "Nested dice in success not yet supported.",
+                    location=max_value.location,
+                )
 
             if thresh > iterable.random_element.max_value:
-                raise self.fatal("Success threshold higher than maximum roll "
-                                 "result.")
+                raise self.fatal(
+                    "Success threshold higher than maximum roll " "result."
+                )
 
         if isinstance(iterable, Roll):
             fail_level = iterable.random_element.min_value
@@ -546,7 +559,7 @@ class Again(RHSIntegerOperator):
 
         if rhs is None:
             if not isinstance(lhs, Roll):
-                raise self.fatal('%s is not a random element' % lhs)
+                raise self.fatal("%s is not a random element" % lhs)
 
             rhs = lhs.random_element.max_value
 
@@ -600,7 +613,7 @@ class Array(Operator):
 
 # TODO: stable removal instead of sort -> slice -> shuffle
 class Lowest(RHSIntegerOperator):
-    PASS_KWARGS = ('random',)
+    PASS_KWARGS = ("random",)
 
     def function(self, iterable, n=None, **kwargs):
         if not isinstance(iterable, IntegerList):
@@ -612,12 +625,12 @@ class Lowest(RHSIntegerOperator):
         iterable = iterable.copy()
         iterable.sort()
         iterable[n:] = []
-        kwargs.get('random', random).shuffle(iterable)
+        kwargs.get("random", random).shuffle(iterable)
         return iterable
 
 
 class Highest(RHSIntegerOperator):
-    PASS_KWARGS = ('random',)
+    PASS_KWARGS = ("random",)
 
     def function(self, iterable, n=None, **kwargs):
         if not isinstance(iterable, IntegerList):
@@ -629,12 +642,12 @@ class Highest(RHSIntegerOperator):
         iterable = iterable.copy()
         iterable.sort()
         iterable[:-n] = []
-        kwargs.get('random', random).shuffle(iterable)
+        kwargs.get("random", random).shuffle(iterable)
         return iterable
 
 
 class Middle(RHSIntegerOperator):
-    PASS_KWARGS = ('random',)
+    PASS_KWARGS = ("random",)
 
     def function(self, iterable, n=None, **kwargs):
         if not isinstance(iterable, IntegerList):
@@ -654,19 +667,19 @@ class Middle(RHSIntegerOperator):
         iterable = iterable.copy()
         iterable.sort()
         iterable[:lower], iterable[-upper:] = [], []
-        kwargs.get('random', random).shuffle(iterable)
+        kwargs.get("random", random).shuffle(iterable)
         return iterable
 
 
 class Explode(RHSIntegerOperator):
     def function(self, roll, thresh=None):
         if not isinstance(roll, Roll):
-            raise self.fatal('Cannot explode {0}'.format(roll))
+            raise self.fatal("Cannot explode {0}".format(roll))
         elif thresh is None:
             thresh = roll.random_element.max_value
 
         if roll.random_element.min_value == roll.random_element.max_value:
-            raise self.fatal('Cannot explode a roll of one-sided dice.')
+            raise self.fatal("Cannot explode a roll of one-sided dice.")
 
         elif thresh <= roll.random_element.min_value:
             offset = 0
@@ -675,11 +688,13 @@ class Explode(RHSIntegerOperator):
             if thresh is not None:
                 offset = orig_thresh.location - self.location
 
-            msg = ('Refusing to explode with threshold less than or equal to '
-                   'the lowest possible roll.')
+            msg = (
+                "Refusing to explode with threshold less than or equal to "
+                "the lowest possible roll."
+            )
 
             if type(orig_thresh) is not Integer:
-                msg += ' (%s evaluated to %s)' % (orig_thresh, thresh)
+                msg += " (%s evaluated to %s)" % (orig_thresh, thresh)
 
             raise self.fatal(msg, offset=offset)
 
@@ -691,7 +706,7 @@ class Explode(RHSIntegerOperator):
             explosions += 1
 
             if explosions >= MAX_EXPLOSIONS:
-                raise self.fatal('Too many explosions!')
+                raise self.fatal("Too many explosions!")
 
             num_rerolls = sum(x >= thresh for x in rerolled)
             rerolled = roll.do_roll(num_rerolls)
@@ -703,13 +718,15 @@ class Explode(RHSIntegerOperator):
 class Reroll(RHSIntegerOperator):
     def function(self, roll, thresh=None):
         if not isinstance(roll, Roll):
-            raise self.fatal('Cannot reroll {0}'.format(roll))
+            raise self.fatal("Cannot reroll {0}".format(roll))
 
         elem = roll.random_element
 
         if isinstance(elem.min_value, RandomElement):
-            raise self.fatal("Nested dice in reroll not yet supported.",
-                             location=elem.min_value.location)
+            raise self.fatal(
+                "Nested dice in reroll not yet supported.",
+                location=elem.min_value.location,
+            )
 
         if thresh is None:
             thresh = elem.min_value
@@ -726,13 +743,15 @@ class Reroll(RHSIntegerOperator):
 class ForceReroll(RHSIntegerOperator):
     def function(self, roll, thresh=None, force_min=False):
         if not isinstance(roll, Roll):
-            raise self.fatal('Cannot reroll {0}'.format(roll))
+            raise self.fatal("Cannot reroll {0}".format(roll))
 
         elem = roll.random_element
 
         if isinstance(elem.max_value, RandomElement):
-            raise self.fatal("Nested dice in force-reroll not yet supported.",
-                             location=elem.max_value.location)
+            raise self.fatal(
+                "Nested dice in force-reroll not yet supported.",
+                location=elem.max_value.location,
+            )
 
         if thresh is None:
             thresh = elem.min_value
@@ -782,7 +801,7 @@ class ArrayAdd(RHSIntegerOperator):
 
             return iterable
         except TypeError:
-            raise self.fatal('Invalid operands for array add')
+            raise self.fatal("Invalid operands for array add")
 
 
 class ArraySub(RHSIntegerOperator):
@@ -796,4 +815,4 @@ class ArraySub(RHSIntegerOperator):
 
             return iterable
         except TypeError:
-            raise self.fatal('Invalid operands for array sub')
+            raise self.fatal("Invalid operands for array sub")

@@ -5,8 +5,18 @@ from dice.exceptions import DiceFatalException
 from py.test import raises
 import random
 
-from dice.elements import (Integer, Roll, WildRoll, Dice, FudgeDice, Total,
-                           MAX_ROLL_DICE, Element, RandomElement, WildDice)
+from dice.elements import (
+    Integer,
+    Roll,
+    WildRoll,
+    Dice,
+    FudgeDice,
+    Total,
+    MAX_ROLL_DICE,
+    Element,
+    RandomElement,
+    WildDice,
+)
 from dice import roll, roll_min, roll_max
 
 
@@ -23,15 +33,15 @@ class TestElements(object):
         assert d.amount == 2 and d.sides == 6
 
     def test_dice_from_string(self):
-        d = Dice.from_string('2d6')
+        d = Dice.from_string("2d6")
         assert type(d) is Dice
         assert d.amount == 2 and d.sides == 6
 
-        w = Dice.from_string('2w6')
+        w = Dice.from_string("2w6")
         assert type(w) is WildDice
         assert w.amount == 2 and w.sides == 6
 
-        u = Dice.from_string('2u6')
+        u = Dice.from_string("2u6")
         assert type(u) is FudgeDice
         assert u.amount == 2 and u.sides == 6
 
@@ -39,8 +49,8 @@ class TestElements(object):
         amount, sides = 6, 6
         for sep, cls in RandomElement.DICE_MAP.items():
             d = cls(amount, sides)
-            assert str(d) == '%i%s%i' % (amount, cls.SEPERATOR, sides)
-            assert repr(d) == '%s(%i, %i)' % (cls.__name__, amount, sides)
+            assert str(d) == "%i%s%i" % (amount, cls.SEPERATOR, sides)
+            assert repr(d) == "%s(%i, %i)" % (cls.__name__, amount, sides)
 
     def test_roll(self):
         amount, sides = 6, 6
@@ -49,21 +59,21 @@ class TestElements(object):
         rr = Roll.roll(amount, 1, sides)
         assert (1 * sides) <= sum(rr) <= (amount * sides)
 
-        rr = roll('%id%i' % (amount, sides))
+        rr = roll("%id%i" % (amount, sides))
         rmin, rmax = rr.random_element.min_value, rr.random_element.max_value
         assert rmin <= rr.do_roll_single() <= rmax
 
     def test_list(self):
-        assert roll('1, 2, 3') == [1, 2, 3]
+        assert roll("1, 2, 3") == [1, 2, 3]
 
     def test_special_rhs(self):
-        assert roll('d%', raw=True).max_value == 100
-        fudge = roll('dF', raw=True)
+        assert roll("d%", raw=True).max_value == 100
+        fudge = roll("dF", raw=True)
         assert fudge.min_value == -1 and fudge.max_value == 1
 
     def test_extreme_roll(self):
-        assert roll_min('3d6') == [1] * 3
-        assert roll_max('3d6') == [6] * 3
+        assert roll_min("3d6") == [1] * 3
+        assert roll_max("3d6") == [6] * 3
 
     def test_fudge(self):
         amount, _range = 6, 6
@@ -102,10 +112,10 @@ class TestElements(object):
 class TestErrors(object):
     def test_toomanydice(self):
         with raises(DiceFatalException):
-            roll('%id6' % (MAX_ROLL_DICE + 1))
+            roll("%id6" % (MAX_ROLL_DICE + 1))
 
         with raises(DiceFatalException):
-            roll('7d6', max_dice=6)
+            roll("7d6", max_dice=6)
 
         with raises(ValueError):
             Roll.roll(6, 1, 6, max_dice=4)
@@ -122,14 +132,14 @@ class TestErrors(object):
             Roll.roll_single(4, 3)
 
         with raises(DiceFatalException):
-            rolled = roll('6d6')
+            rolled = roll("6d6")
             rolled.do_roll_single(4, 3)
 
 
 class TestEvaluate(object):
     def test_cache(self):
         """Test that evaluation returns the same result on successive runs"""
-        roll('6d(6d6)t')
+        roll("6d(6d6)t")
         ast = Total(Dice(6, Dice(6, 6)))
         evals = [ast.evaluate_cached() for i in range(100)]
         assert len(set(evals)) == 1
@@ -143,16 +153,16 @@ class TestEvaluate(object):
 
     def test_multiargs(self):
         """Test that binary operators function properly when repeated"""
-        assert roll('1d1+1d1+1d1') == 3
-        assert roll('1d1-1d1-1d1') == -1
-        assert roll('1d1*1d1*1d1') == 1
-        assert roll('1d1/1d1/1d1') == 1
+        assert roll("1d1+1d1+1d1") == 3
+        assert roll("1d1-1d1-1d1") == -1
+        assert roll("1d1*1d1*1d1") == 1
+        assert roll("1d1/1d1/1d1") == 1
 
 
 class TestRegisterDice(object):
     def test_reregister(self):
         class FooDice(RandomElement):
-            SEPERATOR = 'd'
+            SEPERATOR = "d"
 
         with raises(RuntimeError):
             RandomElement.register_dice(FooDice)
@@ -177,7 +187,7 @@ class TestSystemRandom(object):
 
     # lowest, middle and highest operators use shuffle()
     def test_sysrandom_op(self):
-        roll('6d6h1', random=self.sysrandom)
+        roll("6d6h1", random=self.sysrandom)
 
     def test_sysrandom_roll(self):
-        roll('6d6', random=self.sysrandom)
+        roll("6d6", random=self.sysrandom)
