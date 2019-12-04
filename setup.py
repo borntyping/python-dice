@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="dice",
-    version="2.4.2",
+    version="3.0.0",
     author="Sam Clements",
     author_email="sam@borntyping.co.uk",
     url="https://github.com/borntyping/python-dice",
@@ -18,19 +18,17 @@ setup(
         "console_scripts": ["dice = dice.command:main", "roll = dice.command:main"]
     },
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
         "Intended Audience :: Developers",
         "Intended Audience :: Other Audience",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Topic :: Games/Entertainment",
         "Topic :: Games/Entertainment :: Board Games",
         "Topic :: Games/Entertainment :: Role-Playing",
