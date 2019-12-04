@@ -121,9 +121,9 @@ integer = Word(nums)
 integer.setParseAction(Integer.parse)
 integer.setName("integer")
 
-dice_seperators = RandomElement.DICE_MAP.keys()
+dice_separators = RandomElement.DICE_MAP.keys()
 dice_element = Or(
-    wrap_string(CaselessLiteral, x, suppress=False) for x in dice_seperators
+    wrap_string(CaselessLiteral, x, suppress=False) for x in dice_separators
 )
 special = wrap_string(Literal, "%", suppress=False) | wrap_string(
     CaselessLiteral, "f", suppress=False

@@ -69,7 +69,7 @@ class TestVerbosePrint(object):
 
 
 class TestDiceSwitch(object):
-    def test_seperator_map(self):
+    def test_separator_map(self):
         for sep, cls in RandomElement.DICE_MAP.items():
             d = utilities.dice_switch(6, 6, sep)
             assert type(d) is cls

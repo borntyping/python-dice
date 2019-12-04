@@ -9,7 +9,7 @@ from copy import copy
 
 from dice.constants import MAX_EXPLOSIONS, MAX_ROLL_DICE, DiceExtreme
 from dice.exceptions import DiceFatalException
-from dice.utilities import classname, addevensubodd, dice_switch
+from dice.utilities import classname, add_even_sub_odd, dice_switch
 
 
 class Element(object):
@@ -24,7 +24,6 @@ class Element(object):
             raise exc  # nocover
 
     def set_parse_attributes(self, string, location, tokens):
-        "Fluent API for setting parsed location"
         self.string = string
         self.location = location
         self.tokens = tokens
@@ -100,7 +99,7 @@ class IntegerList(list, Element):
 
 
 class Roll(IntegerList):
-    "Represents a randomized result from a random element"
+    """Represents a randomized result from a random element"""
 
     @classmethod
     def roll_single(cls, min_value, max_value, **kwargs):
@@ -205,11 +204,6 @@ class Roll(IntegerList):
             self.random_element, rolled=self, force_extreme=self.force_extreme
         )
 
-    # unused
-    # def substitute(self, newcontents):
-    #     return type(self)(self.random_element, rolled=newcontents,
-    #                       force_extreme=self.force_extreme)
-
     def __repr__(self):
         return "{0}({1}, random_element={2!r})".format(
             classname(self), str(self), self.random_element
@@ -217,7 +211,7 @@ class Roll(IntegerList):
 
 
 class WildRoll(Roll):
-    "Represents a roll of wild dice"
+    """Represents a roll of wild dice"""
 
     @classmethod
     def roll(cls, amount, min_value, max_value, **kwargs):
@@ -232,7 +226,7 @@ class WildRoll(Roll):
         rolls = [rnd_engine.randint(min_value, max_value) for i in range(amount)]
 
         if min_value == max_value:
-            return rolls  # Continue as if dice were normal instead of erroring
+            return rolls  # Continue as if dice were normal
 
         while rolls[-1] == max_value:
             rolls.append(rnd_engine.randint(min_value, max_value))
@@ -248,27 +242,27 @@ class WildRoll(Roll):
 
 
 class ExplodedRoll(Roll):
-    "Represents an exploded roll"
+    """Represents an exploded roll"""
 
     def __init__(self, original, rolled, **kwargs):
         super(ExplodedRoll, self).__init__(original, rolled=rolled, **kwargs)
 
 
 class RandomElement(Element):
-    "Represents a set of elements with a random numerical result"
+    """Represents a set of elements with a random numerical result"""
 
     DICE_MAP = {}
-    SEPERATOR = None
+    SEPARATOR = None
 
     @classmethod
     def register_dice(cls, new_cls):
         if not issubclass(new_cls, RandomElement):
             raise TypeError("can only register subclasses of RandomElement")
-        elif not new_cls.SEPERATOR:
-            raise TypeError("must specify seperator")
-        elif new_cls.SEPERATOR in cls.DICE_MAP:
-            raise RuntimeError("seperator %s already registered" % new_cls.SEPERATOR)
-        cls.DICE_MAP[new_cls.SEPERATOR] = new_cls
+        elif not new_cls.SEPARATOR:
+            raise TypeError("must specify separator")
+        elif new_cls.SEPARATOR in cls.DICE_MAP:
+            raise RuntimeError("Separator %s already registered" % new_cls.SEPARATOR)
+        cls.DICE_MAP[new_cls.SEPARATOR] = new_cls
         return new_cls
 
     @classmethod
@@ -278,15 +272,18 @@ class RandomElement(Element):
     @classmethod
     def parse(cls, string, location, tokens):
         if len(tokens) > 3:
-            msg = (
-                "Cannot stack dice operators! Try disabiguating your "
-                "expression with parentheses,"
+            raise ParseFatalException(
+                string,
+                tokens[3].location,
+                (
+                    "Cannot stack dice operators! Try disambiguating your "
+                    "expression with parentheses."
+                ),
             )
-            raise ParseFatalException(string, tokens[3].location, msg)
 
-        amount, kind, dicetype = tokens
+        amount, kind, dice_type = tokens
         try:
-            ret = dice_switch(amount, dicetype, kind)
+            ret = dice_switch(amount, dice_type, kind)
             return ret.set_parse_attributes(string, location, tokens)
         except ValueError as e:
             if len(e.args) > 1:
@@ -324,7 +321,7 @@ class RandomElement(Element):
     def __eq__(self, other):
         return (
             type(self) is type(other)
-            and self.amoun == other.amount
+            and self.amount == other.amount
             and self.min_value == other.min_value
             and self.max_value == other.max_value
         )
@@ -337,7 +334,7 @@ class RandomElement(Element):
 class Dice(RandomElement):
     """A group of dice, all with the same number of sides"""
 
-    SEPERATOR = "d"
+    SEPARATOR = "d"
 
     def __init__(self, amount, max_value, min_value=1):
         super(Dice, self).__init__(amount, min_value, max_value)
@@ -354,14 +351,14 @@ class Dice(RandomElement):
         return "{}({})".format(classname(self), p)
 
     def __str__(self):
-        return "{0!s}{1}{2!s}".format(self.amount, self.SEPERATOR, self.sides)
+        return "{0!s}{1}{2!s}".format(self.amount, self.SEPARATOR, self.sides)
 
 
 @RandomElement.register_dice
 class WildDice(Dice):
-    "A group of dice with the last being explodable or a failure mode on 1"
+    """A group of dice with the last being explodable or a failure mode on 1."""
 
-    SEPERATOR = "w"
+    SEPARATOR = "w"
 
     def evaluate(self, **kwargs):
         return WildRoll(self, **kwargs)
@@ -369,12 +366,12 @@ class WildDice(Dice):
 
 @RandomElement.register_dice
 class FudgeDice(Dice):
-    "A group of dice whose sides range from -x to x, including 0"
+    """A group of dice whose sides range from -x to x, including 0"""
 
-    SEPERATOR = "u"
+    SEPARATOR = "u"
 
-    def __init__(self, amount, range):
-        super(FudgeDice, self).__init__(amount, range, -range)
+    def __init__(self, amount, value):
+        super(FudgeDice, self).__init__(amount, value, -value)
 
     def __repr__(self):
         p = "{0!r}, {1!r}".format(self.amount, self.max_value)
@@ -455,7 +452,7 @@ class IntegerOperator(Operator):
 
 
 class RHSIntegerOperator(IntegerOperator):
-    "Like IntegerOperator, but doesn't transform the left operator to an int"
+    """Like IntegerOperator, but doesn't transform the left operator to an int"""
 
     def preprocess_operands(self, *operands, **kwargs):
         ret = [self.evaluate_object(operands[0], **kwargs)]
@@ -491,7 +488,7 @@ class Modulo(IntegerOperator):
 
 
 class AddEvenSubOdd(Operator):
-    function = addevensubodd
+    function = add_even_sub_odd
 
 
 class Total(Operator):

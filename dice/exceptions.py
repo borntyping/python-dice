@@ -5,23 +5,21 @@ class DiceBaseException(Exception):
     @classmethod
     def from_other(cls, other):
         if isinstance(other, ParseException):
-            cls = DiceException
+            return DiceException(*other.args)
         elif isinstance(other, ParseFatalException):
-            cls = DiceFatalException
-
-        new = cls(*other.args)
-        return new
+            return DiceFatalException(*other.args)
+        return cls(*other.args)
 
     def pretty_print(self):
         string, location, description = self.args
         lines = string.split("\n")
 
         if len(description) < (self.col - 1):
-            errline = (description + " ^").rjust(self.col)
+            line = (description + " ^").rjust(self.col)
         else:
-            errline = "^ ".rjust(self.col + 1) + description
+            line = "^ ".rjust(self.col + 1) + description
 
-        lines.insert(self.lineno + 1, errline)
+        lines.insert(self.lineno + 1, line)
         return "\n".join(lines)
 
 

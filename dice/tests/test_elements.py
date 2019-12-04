@@ -49,7 +49,7 @@ class TestElements(object):
         amount, sides = 6, 6
         for sep, cls in RandomElement.DICE_MAP.items():
             d = cls(amount, sides)
-            assert str(d) == "%i%s%i" % (amount, cls.SEPERATOR, sides)
+            assert str(d) == "%i%s%i" % (amount, cls.SEPARATOR, sides)
             assert repr(d) == "%s(%i, %i)" % (cls.__name__, amount, sides)
 
     def test_roll(self):
@@ -60,8 +60,8 @@ class TestElements(object):
         assert (1 * sides) <= sum(rr) <= (amount * sides)
 
         rr = roll("%id%i" % (amount, sides))
-        rmin, rmax = rr.random_element.min_value, rr.random_element.max_value
-        assert rmin <= rr.do_roll_single() <= rmax
+        r_min, r_max = rr.random_element.min_value, rr.random_element.max_value
+        assert r_min <= rr.do_roll_single() <= r_max
 
     def test_list(self):
         assert roll("1, 2, 3") == [1, 2, 3]
@@ -162,19 +162,19 @@ class TestEvaluate(object):
 class TestRegisterDice(object):
     def test_reregister(self):
         class FooDice(RandomElement):
-            SEPERATOR = "d"
+            SEPARATOR = "d"
 
         with raises(RuntimeError):
             RandomElement.register_dice(FooDice)
 
-    def test_noseperator(self):
+    def test_no_separator(self):
         class BarDice(RandomElement):
             pass
 
         with raises(TypeError):
             RandomElement.register_dice(BarDice)
 
-    def test_not_randomelement(self):
+    def test_not_random_element(self):
         class BazDice(Element):
             pass
 
