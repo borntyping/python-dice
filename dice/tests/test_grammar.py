@@ -229,10 +229,9 @@ class TestDiceOperators(object):
 
 
 class TestErrors(object):
-    exc_types = (DiceException, DiceFatalException)
-
-    def run_test(self, expr, exceptions=exc_types):
-        with raises(exceptions, message="Expectiong %s to fail!" % expr):
+    @staticmethod
+    def run_test(expr):
+        with raises((DiceException, DiceFatalException)):
             roll(expr)
 
     def test_bad_operators(self):
