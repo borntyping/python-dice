@@ -8,7 +8,9 @@ class DiceBaseException(Exception):
             return DiceException(*other.args)
         elif isinstance(other, ParseFatalException):
             return DiceFatalException(*other.args)
-        return cls(*other.args)
+        raise NotImplementedError(
+            'DiceBaseException can only wrap ParseException or ParseFatalException'
+        )
 
     def pretty_print(self):
         string, location, description = self.args
