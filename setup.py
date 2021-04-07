@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="dice",
-    version="3.1.1",
+    version="3.1.2",
     author="Sam Clements",
     author_email="sam@borntyping.co.uk",
     url="https://github.com/borntyping/python-dice",
