@@ -393,6 +393,9 @@ class Operator(Element):
             classname(self), ", ".join(map(str, self.original_operands))
         )
 
+    def __getnewargs__(self):
+        return self.original_operands
+
     def preprocess_operands(self, *operands, **kwargs):
         def eval_wrapper(operand):
             return self.evaluate_object(operand, **kwargs)
