@@ -21,8 +21,8 @@ __all__ = [
     "DiceFatalException",
     "DiceExtreme",
 ]
-__author__ = "Sam Clements <sam@borntyping.co.uk>, " "Caleb Johnson <me@calebj.io>"
-__version__ = "3.1.2"
+__author__ = "Sam Clements <sam@borntyping.co.uk>, Caleb Johnson <me@calebj.io>"
+__version__ = "4.0.0"
 
 
 def roll(string, **kwargs):

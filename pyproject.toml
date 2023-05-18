@@ -7,7 +7,7 @@ name = "dice"
 version = "4.0.0"
 authors = [
     { name = "Sam Clements", email = "sam@borntyping.co.uk" },
-    { name = "Caleb Johnson" },
+    { name = "Caleb Johnson", email = "me@calebj.io" },
 ]
 maintainers = [
     { name = "Sam Clements", email = "sam@borntyping.co.uk" },
