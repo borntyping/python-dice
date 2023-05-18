@@ -6,8 +6,6 @@ that get in the way of development and debugging. See the dice.utilities
 module for more information.
 """
 
-from __future__ import absolute_import, print_function, unicode_literals
-
 import warnings
 
 from pyparsing import (

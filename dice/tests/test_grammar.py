@@ -1,5 +1,3 @@
-from __future__ import absolute_import, unicode_literals, division
-
 from pyparsing import Word, opAssoc
 from dice.elements import Integer, Roll, WildRoll, ExplodedRoll
 from dice.exceptions import DiceException, DiceFatalException
@@ -7,7 +5,7 @@ from dice import roll, roll_min, roll_max, grammar
 from pytest import raises
 
 
-class TestInteger(object):
+class TestInteger:
     def test_value(self):
         assert roll("1337") == 1337
 
@@ -16,7 +14,7 @@ class TestInteger(object):
         assert isinstance(roll("1"), Integer)
 
 
-class TestDice(object):
+class TestDice:
     def test_dice_value(self):
         assert 0 < int(roll("d6")) <= 6
         assert 0 < int(roll("6d6")) <= 36
@@ -61,7 +59,7 @@ class TestDice(object):
         assert -6 <= roll("u(d6)t") <= 6
 
 
-class TestOperators(object):
+class TestOperators:
     def test_add(self):
         assert roll("2 + 2") == 4
 
@@ -94,7 +92,7 @@ class TestOperators(object):
         assert roll("+-(1, 2)") == [-1, 2]
 
 
-class TestVectorOperators(object):
+class TestVectorOperators:
     def test_total(self):
         assert (6 * 1) <= roll("6d6t") <= (6 * 6)
 
@@ -192,7 +190,7 @@ class TestVectorOperators(object):
         assert len(rr3) == 10
 
 
-class TestDiceOperators(object):
+class TestDiceOperators:
     def test_reroll(self):
         r = roll("6d6r")
         assert len(r) == 6
@@ -228,7 +226,7 @@ class TestDiceOperators(object):
         assert roll("(1|1|1)a1") == [1, 1, 1, 1, 1, 1]
 
 
-class TestErrors(object):
+class TestErrors:
     @staticmethod
     def run_test(expr):
         with raises((DiceException, DiceFatalException)):
@@ -266,7 +264,7 @@ class TestErrors(object):
         self.run_test("1a")
 
 
-class TestOperatorPrecedence(object):
+class TestOperatorPrecedence:
     def test_operator_precedence_1(self):
         assert roll("16 / 8 * 4 + 2 - 1") == 9
 
@@ -280,7 +278,7 @@ class TestOperatorPrecedence(object):
         assert roll("1 + 2 * 3") == 7
 
 
-class TestExpression(object):
+class TestExpression:
     def test_expression(self):
         assert isinstance(roll("2d6"), Roll)
 
@@ -288,7 +286,7 @@ class TestExpression(object):
         assert isinstance(roll("(2d6)d(2d6)"), Roll)
 
 
-class TestBadPrecedence(object):
+class TestBadPrecedence:
     def test_invalid_arity(self):
         with raises(Exception):
             grammar.operatorPrecedence(

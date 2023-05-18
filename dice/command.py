@@ -11,8 +11,6 @@ Options:
     -V --version          Show the package version
 """
 
-from __future__ import absolute_import, print_function, unicode_literals
-
 import docopt
 
 import dice

@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 from pyparsing import Literal, ParseFatalException
 from pytest import raises
 import random
@@ -17,7 +15,7 @@ def test_enable_pyparsing_packrat_parsing():
     assert pyparsing.ParserElement._packratEnabled is True
 
 
-class TestVerbosePrint(object):
+class TestVerbosePrint:
     def _get_vprint(self, expr):
         raw = roll(expr, raw=True)
         evaluated = raw.evaluate_cached()
@@ -51,7 +49,7 @@ class TestVerbosePrint(object):
         assert len(v.split("\n")) == 1
 
 
-class TestDiceSwitch(object):
+class TestDiceSwitch:
     def test_separator_map(self):
         for sep, cls in RandomElement.DICE_MAP.items():
             d = utilities.dice_switch(6, 6, sep)

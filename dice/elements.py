@@ -1,7 +1,5 @@
 """Objects used in the evaluation of the parse tree"""
 
-from __future__ import absolute_import, print_function, unicode_literals
-
 import random
 import operator
 from pyparsing import ParseFatalException
@@ -12,7 +10,7 @@ from dice.exceptions import DiceFatalException
 from dice.utilities import classname, add_even_sub_odd, dice_switch
 
 
-class Element(object):
+class Element:
     @classmethod
     def parse(cls, string, location, tokens):
         try:
@@ -197,7 +195,7 @@ class Roll(IntegerList):
             else:
                 rolled = self.do_roll(**kwargs)
 
-        super(Roll, self).__init__(rolled)
+        super().__init__(rolled)
 
     def copy(self):
         return type(self)(
@@ -245,7 +243,7 @@ class ExplodedRoll(Roll):
     """Represents an exploded roll"""
 
     def __init__(self, original, rolled, **kwargs):
-        super(ExplodedRoll, self).__init__(original, rolled=rolled, **kwargs)
+        super().__init__(original, rolled=rolled, **kwargs)
 
 
 class RandomElement(Element):
@@ -337,7 +335,7 @@ class Dice(RandomElement):
     SEPARATOR = "d"
 
     def __init__(self, amount, max_value, min_value=1):
-        super(Dice, self).__init__(amount, min_value, max_value)
+        super().__init__(amount, min_value, max_value)
         self.original_operands = (amount, max_value)
 
     @property
@@ -371,7 +369,7 @@ class FudgeDice(Dice):
     SEPARATOR = "u"
 
     def __init__(self, amount, value):
-        super(FudgeDice, self).__init__(amount, value, -value)
+        super().__init__(amount, value, -value)
 
     def __repr__(self):
         p = "{0!r}, {1!r}".format(self.amount, self.max_value)
@@ -779,7 +777,7 @@ class Negate(Operator):
             # Passthrough to prevent Negate() clutter
             return Integer(-x)
 
-        return super(Negate, cls).__new__(cls)
+        return super().__new__(cls)
 
     def function(self, operand):
         operand = IntegerList(operand)

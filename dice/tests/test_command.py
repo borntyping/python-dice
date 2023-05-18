@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 from dice import roll, roll_min, roll_max
 from dice.command import main
 from itertools import product

@@ -1,8 +1,5 @@
-from __future__ import absolute_import, unicode_literals
-
 import dice.elements
 from dice.constants import VERBOSE_INDENT
-import pyparsing
 
 
 def classname(obj):

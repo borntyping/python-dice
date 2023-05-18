@@ -1,5 +1,5 @@
 # Python 2 doesn't nave enum, but this is close enough.
-class DiceExtreme(object):
+class DiceExtreme:
     EXTREME_MIN = "MIN"
     EXTREME_MAX = "MAX"
 

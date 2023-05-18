@@ -45,8 +45,12 @@ This returns an `Element` which is the result of the roll, which can be a
 
 This library is available as `dice` on PyPI. Install it with your Python
 package or dependency manager of choice — if you're installing it as a
-command-line tool, I recommend [pipx]. It's only dependencies are the `docopt`
-and `pyparsing` libraries.
+command-line tool, I recommend [pipx].
+
+A recent version of Python 3 (3.8 or above) is required. You can probably run
+it or easily adapt it for older versions of Python, but I don't support any
+end-of-life Python versions. Beyond that, the only dependencies are the
+`docopt` and `pyparsing` libraries.
 
 [pipx]: https://pypa.github.io/pipx/
 
