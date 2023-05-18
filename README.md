@@ -41,6 +41,15 @@ This returns an `Element` which is the result of the roll, which can be a
 
 ## Usage
 
+### Installation
+
+This library is available as `dice` on PyPI. Install it with your Python
+package or dependency manager of choice — if you're installing it as a
+command-line tool, I recommend [pipx]. It's only dependencies are the `docopt`
+and `pyparsing` libraries.
+
+[pipx]: https://pypa.github.io/pipx/
+
 ### Notation
 
 The expression works like a simple equation parser with some extra operators.
