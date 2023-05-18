@@ -1,7 +1,7 @@
-name: Tests
+name: Test
 on: [push]
 jobs:
-  build:
+  pytest:
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 4
@@ -11,12 +11,11 @@ jobs:
           - '3.9'
           - '3.10'
           - '3.11'
-          - '3.12'
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: '${{ matrix.python-version }}'
-    - run: python -m pip install pytest black .
-    - run: pytest
-    - run: black --check .
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '${{ matrix.python-version }}'
+      - run: python -m pip install pytest black .
+      - run: pytest
+      - run: black --check .
