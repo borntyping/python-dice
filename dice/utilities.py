@@ -22,7 +22,7 @@ def wrap_string(cls, *args, **kwargs):
 
 
 def add_even_sub_odd(operator, operand):
-    """Add even numbers, subtract odd ones. See http://1w6.org/w6 """
+    """Add even numbers, subtract odd ones. See http://1w6.org/w6"""
     try:
         for i, x in enumerate(operand):
             if x % 2:

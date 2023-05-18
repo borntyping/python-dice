@@ -137,7 +137,7 @@ class TestErrors:
     def test_invalid_wrap(self):
         with raises(NotImplementedError):
             try:
-                raise RuntimeError('blah')
+                raise RuntimeError("blah")
             except Exception as e:
                 raise DiceException.from_other(e)
 
@@ -200,15 +200,7 @@ class TestSystemRandom:
 
 
 class TestPickle:
-    for expr in [
-        '-d20',
-        '4d6t',
-        '+-(1,2,3)',
-        '2d20h',
-        '4d6h3s',
-        '4dF - 2',
-        '4*d%'
-    ]:
+    for expr in ["-d20", "4d6t", "+-(1,2,3)", "2d20h", "4d6h3s", "4dF - 2", "4*d%"]:
         value = roll(expr, raw=True, single=False)
         pickled = pickle.dumps(value)
         clone = pickle.loads(pickled)

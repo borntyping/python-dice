@@ -551,7 +551,6 @@ class SuccessFail(RHSIntegerOperator):
 
 class Again(RHSIntegerOperator):
     def function(self, lhs, rhs=None):
-
         if not isinstance(lhs, IntegerList):
             lhs = IntegerList([lhs])
 
