@@ -1,7 +1,5 @@
 """A library for parsing and evaluating dice notation."""
 
-from __future__ import absolute_import, print_function, unicode_literals
-
 from pyparsing import ParseBaseException
 
 import dice.elements
@@ -23,8 +21,8 @@ __all__ = [
     "DiceFatalException",
     "DiceExtreme",
 ]
-__author__ = "Sam Clements <sam@borntyping.co.uk>, " "Caleb Johnson <me@calebj.io>"
-__version__ = "3.1.2"
+__author__ = "Sam Clements <sam@borntyping.co.uk>, Caleb Johnson <me@calebj.io>"
+__version__ = "4.0.0"
 
 
 def roll(string, **kwargs):

@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dice"
+version = "4.0.0"
+authors = [
+    { name = "Sam Clements", email = "sam@borntyping.co.uk" },
+    { name = "Caleb Johnson", email = "me@calebj.io" },
+]
+maintainers = [
+    { name = "Sam Clements", email = "sam@borntyping.co.uk" },
+]
+description = "A library for parsing and evaluating dice notation"
+readme = "README.md"
+requires-python = ">=3.7"
+license = { text = "MIT" }
+classifiers = [
+    "Development Status :: 6 - Mature",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Other Audience",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Games/Entertainment",
+    "Topic :: Games/Entertainment :: Board Games",
+    "Topic :: Games/Entertainment :: Role-Playing",
+    "Topic :: Games/Entertainment :: Multi-User Dungeons (MUD)",
+    "Topic :: Games/Entertainment :: Turn Based Strategy",
+    "Topic :: Utilities",
+]
+keywords = ["dice"]
+dependencies = [
+    "pyparsing>=2.4.1",
+]
+urls = { homepage = "https://github.com/borntyping/python-dice" }
+
+[project.scripts]
+dice = "dice.command:main"
+roll = "dice.command:main"

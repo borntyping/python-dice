@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 from pyparsing import Literal, ParseFatalException
 from pytest import raises
 import random
@@ -17,24 +15,7 @@ def test_enable_pyparsing_packrat_parsing():
     assert pyparsing.ParserElement._packratEnabled is True
 
 
-def test_disable_pyparsing_arity_trimming():
-    """Test that pyparsing._trim_arity has been replaced"""
-    import pyparsing
-    import dice.utilities
-
-    assert pyparsing._trim_arity is dice.utilities._trim_arity
-
-
-def test_disable_pyparsing_arity_trimming_works():
-    """Tests that arity trimming has been disabled and parse actions with
-    the wrong number of arguments will raise TypeErrors"""
-    for func in [lambda a: None, lambda a, b: None, lambda a, b, c, d: None]:
-        element = Literal("test").setParseAction(func)
-        with raises(TypeError):
-            element.parseString("test")
-
-
-class TestVerbosePrint(object):
+class TestVerbosePrint:
     def _get_vprint(self, expr):
         raw = roll(expr, raw=True)
         evaluated = raw.evaluate_cached()
@@ -68,7 +49,7 @@ class TestVerbosePrint(object):
         assert len(v.split("\n")) == 1
 
 
-class TestDiceSwitch(object):
+class TestDiceSwitch:
     def test_separator_map(self):
         for sep, cls in RandomElement.DICE_MAP.items():
             d = utilities.dice_switch(6, 6, sep)

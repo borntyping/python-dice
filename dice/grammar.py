@@ -6,7 +6,7 @@ that get in the way of development and debugging. See the dice.utilities
 module for more information.
 """
 
-from __future__ import absolute_import, print_function, unicode_literals
+import warnings
 
 from pyparsing import (
     CaselessLiteral,
@@ -14,6 +14,7 @@ from pyparsing import (
     Literal,
     OneOrMore,
     Or,
+    ParserElement,
     StringStart,
     StringEnd,
     Suppress,
@@ -50,9 +51,12 @@ from dice.elements import (
     Again,
 )
 
-from dice.utilities import patch_pyparsing, wrap_string
+from dice.utilities import wrap_string
 
-patch_pyparsing()
+# Enables pyparsing's packrat parsing, which is much faster
+# for the type of parsing being done in this library.
+warnings.warn("Enabled pyparsing packrat parsing", ImportWarning)
+ParserElement.enablePackrat()
 
 
 def operatorPrecedence(base, operators):

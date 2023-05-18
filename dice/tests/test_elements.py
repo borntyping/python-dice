@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 from dice.constants import DiceExtreme
 from dice.exceptions import DiceException, DiceFatalException
 import pickle
@@ -21,7 +19,7 @@ from dice.elements import (
 from dice import roll, roll_min, roll_max
 
 
-class TestElements(object):
+class TestElements:
     def test_integer(self):
         assert isinstance(Integer(1), int)
 
@@ -110,7 +108,7 @@ class TestElements(object):
                 break
 
 
-class TestErrors(object):
+class TestErrors:
     def test_toomanydice(self):
         with raises(DiceFatalException):
             roll("%id6" % (MAX_ROLL_DICE + 1))
@@ -139,12 +137,12 @@ class TestErrors(object):
     def test_invalid_wrap(self):
         with raises(NotImplementedError):
             try:
-                raise RuntimeError('blah')
+                raise RuntimeError("blah")
             except Exception as e:
                 raise DiceException.from_other(e)
 
 
-class TestEvaluate(object):
+class TestEvaluate:
     def test_cache(self):
         """Test that evaluation returns the same result on successive runs"""
         roll("6d(6d6)t")
@@ -167,7 +165,7 @@ class TestEvaluate(object):
         assert roll("1d1/1d1/1d1") == 1
 
 
-class TestRegisterDice(object):
+class TestRegisterDice:
     def test_reregister(self):
         class FooDice(RandomElement):
             SEPARATOR = "d"
@@ -190,7 +188,7 @@ class TestRegisterDice(object):
             RandomElement.register_dice(BazDice)
 
 
-class TestSystemRandom(object):
+class TestSystemRandom:
     sysrandom = random.SystemRandom()
 
     # lowest, middle and highest operators use shuffle()
@@ -201,16 +199,8 @@ class TestSystemRandom(object):
         roll("6d6", random=self.sysrandom)
 
 
-class TestPickle(object):
-    for expr in [
-        '-d20',
-        '4d6t',
-        '+-(1,2,3)',
-        '2d20h',
-        '4d6h3s',
-        '4dF - 2',
-        '4*d%'
-    ]:
+class TestPickle:
+    for expr in ["-d20", "4d6t", "+-(1,2,3)", "2d20h", "4d6h3s", "4dF - 2", "4*d%"]:
         value = roll(expr, raw=True, single=False)
         pickled = pickle.dumps(value)
         clone = pickle.loads(pickled)
