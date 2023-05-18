@@ -24,7 +24,7 @@ The command line arguments are as follows:
 * `-V` `--version` Show the package version
 
 If your expression begins with a dash (`-`), then put a double dash (`--`)
-before it to prevent docopt from trying to process it as a command option.
+before it to prevent the parser from trying to process it as a command option.
 Example: `roll -- -10d6`. Alternatively, use parenthesis: `roll (-10d6)`.
 
 ### Python API
@@ -49,8 +49,7 @@ command-line tool, I recommend [pipx].
 
 A recent version of Python 3 (3.8 or above) is required. You can probably run
 it or easily adapt it for older versions of Python, but I don't support any
-end-of-life Python versions. Beyond that, the only dependencies are the
-`docopt` and `pyparsing` libraries.
+end-of-life Python versions. Beyond that, the only dependency is the `pyparsing` library.
 
 [pipx]: https://pypa.github.io/pipx/
 

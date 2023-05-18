@@ -39,7 +39,6 @@ classifiers = [
 ]
 keywords = ["dice"]
 dependencies = [
-    "docopt>=0.6.1",
     "pyparsing>=2.4.1",
 ]
 urls = { homepage = "https://github.com/borntyping/python-dice" }

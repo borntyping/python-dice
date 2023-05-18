@@ -11,48 +11,51 @@ Options:
     -V --version          Show the package version
 """
 
-import docopt
+import argparse
 
 import dice
-from dice.exceptions import DiceBaseException
+import dice.exceptions
 
-__version__ = "dice v{0} by {1}".format(dice.__version__, dice.__author__)
+__version__ = "dice v{0} by {1}.".format(dice.__version__, dice.__author__)
+
+parser = argparse.ArgumentParser(prog="dice", description="Parse and evaluate dice notation.", epilog=__version__)
+parser.add_argument('-m', '--min', action="store_true", help="Make all rolls the lowest possible result.")
+parser.add_argument('-M', '--max', action="store_true", help="Make all rolls the highest possible result.")
+parser.add_argument('-D', '--max-dice', action="store", type=int, metavar='N', help="Set the maximum number of dice per element.")
+parser.add_argument('-v', '--verbose', action="store_true", help="Show additional output.")
+parser.add_argument('-V', '--version', action="version", version=__version__, help="Show the package version.")
+parser.add_argument('expression', nargs='+')
 
 
-def main(argv=None):
+def main(args=None):
     """Run roll() from a command line interface"""
-    args = docopt.docopt(__doc__, argv=argv, version=__version__)
-    verbose = bool(args["--verbose"])
+    args = parser.parse_args(args=args)
+    f_kwargs = {}
 
-    f_roll = dice.roll
-    kwargs = {}
-
-    if args["--min"]:
+    if args.min:
         f_roll = dice.roll_min
-    elif args["--max"]:
+    elif args.max:
         f_roll = dice.roll_max
+    else:
+        f_roll = dice.roll
 
-    if args["--max-dice"]:
-        try:
-            kwargs["max_dice"] = int(args["--max-dice"])
-        except ValueError:
-            print("Invalid value for --max-dice: '%s'" % args["--max-dice"])
-            exit(1)
+    if args.max_dice:
+        f_kwargs['max_dice'] = args.max_dice
 
-    expr = " ".join(args["<expression>"])
+    f_expr = " ".join(args.expression)
 
     try:
-        roll, kwargs = f_roll(expr, raw=True, return_kwargs=True, **kwargs)
+        roll, kwargs = f_roll(f_expr, raw=True, return_kwargs=True, **f_kwargs)
 
-        if verbose:
+        if args.verbose:
             print("Result: ", end="")
 
         print(str(roll.evaluate_cached(**kwargs)))
 
-        if verbose:
+        if args.verbose:
             print("Breakdown:")
             print(dice.utilities.verbose_print(roll, **kwargs))
-    except DiceBaseException as e:
+    except dice.exceptions.DiceBaseException as e:
         print("Whoops! Something went wrong:")
         print(e.pretty_print())
         exit(1)
